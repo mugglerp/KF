@@ -1,0 +1,4 @@
+{
+    "verilog.linting.linter": "xvlog",
+    "verilog.linting.xvlog.arguments": "+incdir+${workspaceFolder}/rtl -sv"
+} 
