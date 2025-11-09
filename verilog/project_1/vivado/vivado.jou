@@ -3,10 +3,10 @@
 # SW Build 6140274 on Thu May 22 00:12:29 MDT 2025
 # IP Build 6138677 on Thu May 22 03:10:11 MDT 2025
 # SharedData Build 6139179 on Tue May 20 17:58:58 MDT 2025
-# Start of session at: Sun Nov  9 21:44:40 2025
-# Process ID         : 22504
+# Start of session at: Sun Nov  9 21:58:57 2025
+# Process ID         : 12300
 # Current directory  : C:/KF/verilog/project_1/vivado
-# Command line       : vivado.exe -gui_launcher_event rodinguilauncherevent9756 C:\KF\verilog\project_1\vivado\project_1.xpr
+# Command line       : vivado.exe -gui_launcher_event rodinguilauncherevent30532 C:\KF\verilog\project_1\vivado\project_1.xpr
 # Log file           : C:/KF/verilog/project_1/vivado/vivado.log
 # Journal file       : C:/KF/verilog/project_1/vivado\vivado.jou
 # Running On         : DESKTOP-M6M8OHC
@@ -19,7 +19,7 @@
 # Host memory        : 33990 MB
 # Swap memory        : 2147 MB
 # Total Virtual      : 36138 MB
-# Available Virtual  : 9884 MB
+# Available Virtual  : 11322 MB
 #-----------------------------------------------------------
 start_gui
 open_project C:/KF/verilog/project_1/vivado/project_1.xpr
