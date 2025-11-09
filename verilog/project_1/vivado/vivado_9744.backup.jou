@@ -1,0 +1,561 @@
+#-----------------------------------------------------------
+# Vivado v2025.1 (64-bit)
+# SW Build 6140274 on Thu May 22 00:12:29 MDT 2025
+# IP Build 6138677 on Thu May 22 03:10:11 MDT 2025
+# SharedData Build 6139179 on Tue May 20 17:58:58 MDT 2025
+# Start of session at: Sun Nov  9 12:54:18 2025
+# Process ID         : 9744
+# Current directory  : C:/KF/verilog/project_1/vivado
+# Command line       : vivado.exe -gui_launcher_event rodinguilauncherevent8104 C:\KF\verilog\project_1\vivado\project_1.xpr
+# Log file           : C:/KF/verilog/project_1/vivado/vivado.log
+# Journal file       : C:/KF/verilog/project_1/vivado\vivado.jou
+# Running On         : DESKTOP-M6M8OHC
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26100
+# Processor Detail   : AMD Ryzen 7 9700X 8-Core Processor             
+# CPU Frequency      : 3800 MHz
+# CPU Physical cores : 8
+# CPU Logical cores  : 16
+# Host memory        : 33990 MB
+# Swap memory        : 2147 MB
+# Total Virtual      : 36138 MB
+# Available Virtual  : 8822 MB
+#-----------------------------------------------------------
+start_gui
+open_project C:/KF/verilog/project_1/vivado/project_1.xpr
+update_compile_order -fileset sources_1
+export_ip_user_files -of_objects  [get_files C:/KF/verilog/project_1/tb/tb_top_kf_multiframe_vec.v] -no_script -reset -force -quiet
+remove_files  -fileset sim_1 C:/KF/verilog/project_1/tb/tb_top_kf_multiframe_vec.v
+update_compile_order -fileset sim_1
+set_property SOURCE_SET sources_1 [get_filesets sim_1]
+add_files -fileset sim_1 -norecurse C:/KF/verilog/project_1/tb/tb_top_kf_multiframe_mem.v
+update_compile_order -fileset sim_1
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_top_kf_multiframe_mem [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_top_kf_multiframe_mem.tcl
+set_property verilog_define {} [get_filesets sim_1]
+close_sim
+launch_simulation
+source tb_top_kf_multiframe_mem.tcl
+run all
+close_sim
+export_ip_user_files -of_objects  [get_files C:/KF/verilog/project_1/tb/tb_top_kf_multiframe_mem.v] -no_script -reset -force -quiet
+remove_files  -fileset sim_1 C:/KF/verilog/project_1/tb/tb_top_kf_multiframe_mem.v
+update_compile_order -fileset sim_1
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_top_kf_34c [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+launch_simulation
+launch_simulation
+source tb_top_kf_34c.tcl
+close_sim
+set_property SOURCE_SET sources_1 [get_filesets sim_1]
+add_files -fileset sim_1 -norecurse {C:/KF/verilog/project_1/tb/tb_q_serial_min.v C:/KF/verilog/project_1/tb/tb_r_serial_min.v}
+update_compile_order -fileset sim_1
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_q_serial_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_q_serial_min.tcl
+close_sim
+launch_simulation
+source tb_q_serial_min.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_r_serial_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_r_serial_min.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_top_kf_34c [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_top_kf_34c.tcl
+current_wave_config {Untitled 7}
+log_wave {/tb_top_kf_34c/dut/U_PS/clk} {/tb_top_kf_34c/dut/U_PS/rst_n} {/tb_top_kf_34c/dut/U_PS/start} {/tb_top_kf_34c/dut/U_PS/x00} {/tb_top_kf_34c/dut/U_PS/x10} {/tb_top_kf_34c/dut/U_PS/a00} {/tb_top_kf_34c/dut/U_PS/a01} {/tb_top_kf_34c/dut/U_PS/a10} {/tb_top_kf_34c/dut/U_PS/a11} {/tb_top_kf_34c/dut/U_PS/u00} {/tb_top_kf_34c/dut/U_PS/u10} {/tb_top_kf_34c/dut/U_PS/b00} {/tb_top_kf_34c/dut/U_PS/b01} {/tb_top_kf_34c/dut/U_PS/b10} {/tb_top_kf_34c/dut/U_PS/b11} {/tb_top_kf_34c/dut/U_PS/done} {/tb_top_kf_34c/dut/U_PS/X_PRIOR00} {/tb_top_kf_34c/dut/U_PS/X_PRIOR10} {/tb_top_kf_34c/dut/U_PS/m0a} {/tb_top_kf_34c/dut/U_PS/m0b} {/tb_top_kf_34c/dut/U_PS/m1a} {/tb_top_kf_34c/dut/U_PS/m1b} {/tb_top_kf_34c/dut/U_PS/p0} {/tb_top_kf_34c/dut/U_PS/p1} {/tb_top_kf_34c/dut/U_PS/p0_t_unused} {/tb_top_kf_34c/dut/U_PS/p1_t_unused} {/tb_top_kf_34c/dut/U_PS/add_full} {/tb_top_kf_34c/dut/U_PS/add_2N} {/tb_top_kf_34c/dut/U_PS/t00} {/tb_top_kf_34c/dut/U_PS/t10} {/tb_top_kf_34c/dut/U_PS/s00} {/tb_top_kf_34c/dut/U_PS/s10} {/tb_top_kf_34c/dut/U_PS/st} {/tb_top_kf_34c/dut/U_PS/N} {/tb_top_kf_34c/dut/U_PS/FRAC} 
+current_wave_config {Untitled 7}
+add_wave {{/tb_top_kf_34c/dut/U_PS/clk}} {{/tb_top_kf_34c/dut/U_PS/rst_n}} {{/tb_top_kf_34c/dut/U_PS/start}} {{/tb_top_kf_34c/dut/U_PS/x00}} {{/tb_top_kf_34c/dut/U_PS/x10}} {{/tb_top_kf_34c/dut/U_PS/a00}} {{/tb_top_kf_34c/dut/U_PS/a01}} {{/tb_top_kf_34c/dut/U_PS/a10}} {{/tb_top_kf_34c/dut/U_PS/a11}} {{/tb_top_kf_34c/dut/U_PS/u00}} {{/tb_top_kf_34c/dut/U_PS/u10}} {{/tb_top_kf_34c/dut/U_PS/b00}} {{/tb_top_kf_34c/dut/U_PS/b01}} {{/tb_top_kf_34c/dut/U_PS/b10}} {{/tb_top_kf_34c/dut/U_PS/b11}} {{/tb_top_kf_34c/dut/U_PS/done}} {{/tb_top_kf_34c/dut/U_PS/X_PRIOR00}} {{/tb_top_kf_34c/dut/U_PS/X_PRIOR10}} {{/tb_top_kf_34c/dut/U_PS/m0a}} {{/tb_top_kf_34c/dut/U_PS/m0b}} {{/tb_top_kf_34c/dut/U_PS/m1a}} {{/tb_top_kf_34c/dut/U_PS/m1b}} {{/tb_top_kf_34c/dut/U_PS/p0}} {{/tb_top_kf_34c/dut/U_PS/p1}} {{/tb_top_kf_34c/dut/U_PS/p0_t_unused}} {{/tb_top_kf_34c/dut/U_PS/p1_t_unused}} {{/tb_top_kf_34c/dut/U_PS/add_full}} {{/tb_top_kf_34c/dut/U_PS/add_2N}} {{/tb_top_kf_34c/dut/U_PS/t00}} {{/tb_top_kf_34c/dut/U_PS/t10}} {{/tb_top_kf_34c/dut/U_PS/s00}} {{/tb_top_kf_34c/dut/U_PS/s10}} {{/tb_top_kf_34c/dut/U_PS/st}} {{/tb_top_kf_34c/dut/U_PS/N}} {{/tb_top_kf_34c/dut/U_PS/FRAC}} 
+current_wave_config {Untitled 7}
+add_wave {{/tb_top_kf_34c/dut/U_PS/clk}} {{/tb_top_kf_34c/dut/U_PS/rst_n}} {{/tb_top_kf_34c/dut/U_PS/start}} {{/tb_top_kf_34c/dut/U_PS/x00}} {{/tb_top_kf_34c/dut/U_PS/x10}} {{/tb_top_kf_34c/dut/U_PS/a00}} {{/tb_top_kf_34c/dut/U_PS/a01}} {{/tb_top_kf_34c/dut/U_PS/a10}} {{/tb_top_kf_34c/dut/U_PS/a11}} {{/tb_top_kf_34c/dut/U_PS/u00}} {{/tb_top_kf_34c/dut/U_PS/u10}} {{/tb_top_kf_34c/dut/U_PS/b00}} {{/tb_top_kf_34c/dut/U_PS/b01}} {{/tb_top_kf_34c/dut/U_PS/b10}} {{/tb_top_kf_34c/dut/U_PS/b11}} {{/tb_top_kf_34c/dut/U_PS/done}} {{/tb_top_kf_34c/dut/U_PS/X_PRIOR00}} {{/tb_top_kf_34c/dut/U_PS/X_PRIOR10}} {{/tb_top_kf_34c/dut/U_PS/m0a}} {{/tb_top_kf_34c/dut/U_PS/m0b}} {{/tb_top_kf_34c/dut/U_PS/m1a}} {{/tb_top_kf_34c/dut/U_PS/m1b}} {{/tb_top_kf_34c/dut/U_PS/p0}} {{/tb_top_kf_34c/dut/U_PS/p1}} {{/tb_top_kf_34c/dut/U_PS/p0_t_unused}} {{/tb_top_kf_34c/dut/U_PS/p1_t_unused}} {{/tb_top_kf_34c/dut/U_PS/add_full}} {{/tb_top_kf_34c/dut/U_PS/add_2N}} {{/tb_top_kf_34c/dut/U_PS/t00}} {{/tb_top_kf_34c/dut/U_PS/t10}} {{/tb_top_kf_34c/dut/U_PS/s00}} {{/tb_top_kf_34c/dut/U_PS/s10}} {{/tb_top_kf_34c/dut/U_PS/st}} {{/tb_top_kf_34c/dut/U_PS/N}} {{/tb_top_kf_34c/dut/U_PS/FRAC}} 
+relaunch_sim
+run all
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_q_serial_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_q_serial_min.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_r_serial_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_r_serial_min.tcl
+close_sim
+launch_simulation
+source tb_r_serial_min.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_top_kf_34c [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+set_property SOURCE_SET sources_1 [get_filesets sim_1]
+add_files -fileset sim_1 -norecurse C:/KF/verilog/project_1/tb/tb_top_kf_34c_adapt.v
+update_compile_order -fileset sim_1
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_top_kf_34c_adapt [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_top_kf_34c_adapt.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_r_serial_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_r_serial_min.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_top_kf_34c_adapt [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_top_kf_34c_adapt.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_top_kf_34c [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_top_kf_34c.tcl
+close_sim
+launch_simulation
+source tb_top_kf_34c.tcl
+close_sim
+launch_simulation
+source tb_top_kf_34c.tcl
+close_sim
+export_ip_user_files -of_objects  [get_files C:/KF/verilog/project_1/tb/tb_top_kf_34c_adapt.v] -no_script -reset -force -quiet
+remove_files  -fileset sim_1 C:/KF/verilog/project_1/tb/tb_top_kf_34c_adapt.v
+set_property SOURCE_SET sources_1 [get_filesets sim_1]
+add_files -fileset sim_1 -norecurse C:/KF/verilog/project_1/tb/tb_top_kf_manyframes_rlc.v
+update_compile_order -fileset sim_1
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_top_kf_manyframes_rlc [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+launch_simulation
+source tb_top_kf_manyframes_rlc.tcl
+run all
+close_sim
+launch_simulation
+launch_simulation
+source tb_top_kf_manyframes_rlc.tcl
+run all
+close_sim
+launch_simulation
+source tb_top_kf_manyframes_rlc.tcl
+run all
+close_sim
+launch_simulation
+source tb_top_kf_manyframes_rlc.tcl
+run all
+close_sim
+launch_simulation
+launch_simulation
+source tb_top_kf_manyframes_rlc.tcl
+run all
+close_sim
+set_property SOURCE_SET sources_1 [get_filesets sim_1]
+add_files -fileset sim_1 -norecurse {C:/KF/verilog/project_1/tb/tb_post_state_serial_min.v C:/KF/verilog/project_1/tb/tb_kg_semipar_min.v C:/KF/verilog/project_1/tb/tb_prior_state_serial_min.v}
+update_compile_order -fileset sim_1
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_prior_state_serial_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_prior_state_serial_min.tcl
+run all
+relaunch_sim
+run all
+close_sim
+launch_simulation
+source tb_prior_state_serial_min.tcl
+close_sim
+launch_simulation
+source tb_prior_state_serial_min.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_kg_semipar_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_kg_semipar_min.tcl
+close_sim
+launch_simulation
+source tb_kg_semipar_min.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_post_state_serial_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_post_state_serial_min.tcl
+close_sim
+set_property SOURCE_SET sources_1 [get_filesets sim_1]
+add_files -fileset sim_1 -norecurse C:/KF/verilog/project_1/tb/tb_inv2_serial_min.v
+update_compile_order -fileset sim_1
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_inv2_serial_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_inv2_serial_min.tcl
+close_sim
+set_property SOURCE_SET sources_1 [get_filesets sim_1]
+add_files -fileset sim_1 -norecurse C:/KF/verilog/project_1/tb/tb_prior_cov_semipar_min.v
+update_compile_order -fileset sim_1
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_prior_cov_semipar_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_prior_cov_semipar_min.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_prior_state_serial_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_prior_state_serial_min.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_q_serial_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_q_serial_min.tcl
+close_sim
+launch_simulation
+source tb_q_serial_min.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_r_serial_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_r_serial_min.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_prior_state_serial_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_prior_state_serial_min.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_r_serial_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_r_serial_min.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_kg_semipar_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_kg_semipar_min.tcl
+close_sim
+launch_simulation
+source tb_kg_semipar_min.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_post_state_serial_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_post_state_serial_min.tcl
+close_sim
+set_property SOURCE_SET sources_1 [get_filesets sim_1]
+add_files -fileset sim_1 -norecurse C:/KF/verilog/project_1/tb/tb_post_cov_semipar_min.v
+update_compile_order -fileset sim_1
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_post_cov_semipar_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+launch_simulation
+source tb_post_cov_semipar_min.tcl
+update_compile_order -fileset sim_1
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_prior_cov_semipar_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+launch_simulation
+launch_simulation
+source tb_prior_cov_semipar_min.tcl
+run all
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_post_cov_semipar_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_post_cov_semipar_min.tcl
+close_sim
+launch_simulation
+source tb_post_cov_semipar_min.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_prior_cov_semipar_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+set_property SOURCE_SET sources_1 [get_filesets sim_1]
+add_files -fileset sim_1 -norecurse C:/KF/verilog/project_1/tb/tb_est_output_serial_min.v
+update_compile_order -fileset sim_1
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_est_output_serial_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_est_output_serial_min.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_prior_cov_semipar_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_prior_cov_semipar_min.tcl
+close_sim
+launch_simulation
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_post_cov_semipar_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+launch_simulation
+source tb_post_cov_semipar_min.tcl
+update_compile_order -fileset sim_1
+close_sim
+launch_simulation
+source tb_post_cov_semipar_min.tcl
+close_sim
+launch_simulation
+source tb_post_cov_semipar_min.tcl
+close_sim
+launch_simulation
+source tb_post_cov_semipar_min.tcl
+close_sim
+launch_simulation
+source tb_post_cov_semipar_min.tcl
+close_sim
+launch_simulation
+source tb_post_cov_semipar_min.tcl
+close_sim
+launch_simulation
+source tb_post_cov_semipar_min.tcl
+close_sim
+launch_simulation
+source tb_post_cov_semipar_min.tcl
+close_sim
+launch_simulation
+source tb_post_cov_semipar_min.tcl
+relaunch_sim
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_kg_semipar_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_kg_semipar_min.tcl
+current_wave_config {Untitled 54}
+add_wave {{/tb_kg_semipar_min/dut/cyc}} 
+relaunch_sim
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_prior_cov_semipar_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+launch_simulation
+source tb_prior_cov_semipar_min.tcl
+run all
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_post_cov_semipar_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_post_cov_semipar_min.tcl
+run 10 us
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_prior_cov_semipar_min [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_prior_cov_semipar_min.tcl
+run 10 us
+close_sim
+add_files -norecurse C:/KF/verilog/project_1/rtl/top_kf_36c.v
+update_compile_order -fileset sources_1
+set_property is_enabled false [get_files  C:/KF/verilog/project_1/rtl/top_kf.v]
+set_property SOURCE_SET sources_1 [get_filesets sim_1]
+add_files -fileset sim_1 -norecurse C:/KF/verilog/project_1/tb/tb_top_kf_36c_basic.v
+update_compile_order -fileset sim_1
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_top_kf_36c_basic [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_top_kf_36c_basic.tcl
+close_sim
+launch_simulation
+source tb_top_kf_36c_basic.tcl
+close_sim
+launch_simulation
+source tb_top_kf_36c_basic.tcl
+close_sim
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_top_kf_manyframes_rlc [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+source tb_top_kf_manyframes_rlc.tcl
+run all
+close_sim
+launch_simulation
+source tb_top_kf_manyframes_rlc.tcl
+run all
+close_sim
+launch_simulation
+source tb_top_kf_manyframes_rlc.tcl
+run all
+close_sim
+launch_simulation
+source tb_top_kf_manyframes_rlc.tcl
+run all
+close_sim

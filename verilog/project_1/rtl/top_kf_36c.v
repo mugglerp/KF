@@ -1,6 +1,6 @@
 `include "fxp_types.vh"
 
-module top_kf
+module top_kf_36c
     #( parameter integer N=`FXP_N, parameter integer FRAC=`FXP_FRAC )
      (
          input  wire                     clk,
@@ -20,6 +20,9 @@ module top_kf
          output reg                      done,           // assert at C35
          output wire signed [N-1:0]      X00_post, X10_post
      );
+
+    reg signed [N-1:0] R11_next,R12_next,R21_next,R22_next;
+    reg signed [N-1:0] Q11_next,Q12_next,Q21_next,Q22_next;
 
     // 36-cycle frame: load 35, run down to 0; done at cyc==35 (cnt==0)
     localparam integer FRAME_CYCLES = 36;
@@ -181,7 +184,6 @@ module top_kf
                  .done(q_done),
                  .Q11(Q11_w),.Q12(Q12_w),.Q21(Q21_w),.Q22(Q22_w)
              );
-    reg signed [N-1:0] Q11_next,Q12_next,Q21_next,Q22_next;
     always @(posedge clk or negedge rst_n)
     begin
         if(!rst_n)
@@ -213,7 +215,6 @@ module top_kf
                  .done(r_done),
                  .R11(R11_w),.R12(R12_w),.R21(R21_w),.R22(R22_w)
              );
-    reg signed [N-1:0] R11_next,R12_next,R21_next,R22_next;
     always @(posedge clk or negedge rst_n)
     begin
         if(!rst_n)

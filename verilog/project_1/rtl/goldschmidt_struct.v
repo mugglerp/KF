@@ -1,19 +1,21 @@
 // ============================================================================
 // goldschmidt_struct.v  (piecewise-initialized, 3-iter, pure combinational)
-// 1/x  (x in fixed-point Q(N-FRAC).FRAC, signed two's complement)
+// 1/x  (x in Q(N-FRAC).FRAC, signed two's complement)
 // - Normalize |x| -> u in [0.5, 1.0)
-// - Piecewise linear init: y0 = a*u + b   (3 segments, constants auto-scaled)
+// - Piecewise linear init: y0 = a*u + b (3 segments)
 // - 3 iterations: y <- y*(2 - u*y)
-// - Denormalize: recip = sign * y * 2^(FRAC - msb_pos(|x|))
+// - Denormalize: recip = sign * y << (FRAC - msb_pos(|x|))
+// NOTE: This version removes all 'real' usage and pre-quantizes constants
+//       for N=20, FRAC=10 (SCALE=1024). Fully synthesizable.
 // ============================================================================
+
 `include "fxp_types.vh"
 
-module goldschmidt_struct
-#(
-    parameter integer N    = `FXP_N,
-    parameter integer FRAC = `FXP_FRAC,
+module goldschmidt_struct #(
+    parameter integer N    = `FXP_N,     // expect 20
+    parameter integer FRAC = `FXP_FRAC,  // expect 10
 
-    // ---- 可选：整数 Override（非 0 则使用），否则用自动推导 ----
+    // ---- Optional integer overrides (Q(FRAC)) ----
     parameter integer T1_OVERRIDE = 0,
     parameter integer T2_OVERRIDE = 0,
     parameter integer A1_OVERRIDE = 0, parameter integer B1_OVERRIDE = 0,
@@ -23,34 +25,21 @@ module goldschmidt_struct
     input  signed [N-1:0] x,
     output signed [N-1:0] recip
 );
+    // ---------------- constants (pre-quantized for FRAC=10) ----------------
+    // SCALE = 1<<FRAC = 1024
+    // T1 ≈ 1/sqrt(2) = 0.70710678 -> 724
+    // T2 ≈ sqrt(3)/2 = 0.86602540 -> 887
+    // Segment coefficients (y0 = a*u + b), Q10:
+    // seg1: a=-0.934 -> -956,  b=1.934 -> 1980
+    // seg2: a=-0.707 -> -724,  b=1.707 -> 1748
+    // seg3: a=-0.577 -> -590,  b=1.577 -> 1614
+    localparam integer T1_AUTO = 724;
+    localparam integer T2_AUTO = 887;
+    localparam integer A1_AUTO = -956, B1_AUTO = 1980;
+    localparam integer A2_AUTO = -724, B2_AUTO = 1748;
+    localparam integer A3_AUTO = -590, B3_AUTO = 1614;
 
-    // ---------------- 常量缩放：按 FRAC 自动推导整数 ----------------
-    localparam integer SCALE = (1 << FRAC);
-
-    // Real -> Q(FRAC) 量化（四舍五入，Verilog-2001 合法写法）
-    function integer q_from_real;
-        input real r;
-        begin
-            if (r >= 0.0)
-                q_from_real = $rtoi(r * (1.0 * SCALE) + 0.5);
-            else
-                q_from_real = $rtoi(r * (1.0 * SCALE) - 0.5);
-        end
-    endfunction
-
-    // 阈值（自动）
-    localparam integer T1_AUTO = q_from_real(0.7071067811865476); // 1/sqrt(2)
-    localparam integer T2_AUTO = q_from_real(0.8660254037844386); // sqrt(3)/2
-
-    // 线性系数（自动）
-    localparam integer A1_AUTO = q_from_real(-0.934);
-    localparam integer B1_AUTO = q_from_real( 1.934);
-    localparam integer A2_AUTO = q_from_real(-0.707);
-    localparam integer B2_AUTO = q_from_real( 1.707);
-    localparam integer A3_AUTO = q_from_real(-0.577);
-    localparam integer B3_AUTO = q_from_real( 1.577);
-
-    // 实际使用的整数常量：优先采用 Override，否则用 AUTO
+    // Actual constants (allow overrides if non-zero)
     localparam integer T1 = (T1_OVERRIDE != 0) ? T1_OVERRIDE : T1_AUTO;
     localparam integer T2 = (T2_OVERRIDE != 0) ? T2_OVERRIDE : T2_AUTO;
     localparam integer A1 = (A1_OVERRIDE != 0) ? A1_OVERRIDE : A1_AUTO;
@@ -61,34 +50,37 @@ module goldschmidt_struct
     localparam integer B3 = (B3_OVERRIDE != 0) ? B3_OVERRIDE : B3_AUTO;
 
     // ---------------- helpers & constants -----------------------------
-    // 2.0 in Q format
-    wire signed [N-1:0] CONST_TWO = $signed(2) <<< FRAC;
+    wire signed [N-1:0] CONST_TWO = $signed(2) <<< FRAC;  // 2.0 in Q(FRAC)
 
     // abs(x)
     wire        x_neg  = x[N-1];
     wire signed [N-1:0] x_abs = x_neg ? -x : x;
 
-    // special case: x == 0 -> saturation
+    // x == 0 ? (avoid divide-by-zero; saturate)
     wire is_zero = (x_abs == {N{1'b0}});
 
     // ---------------- find MSB position of |x| ------------------------
+    // find MSB position of |x| (ignore sign bit)
     function integer msb_pos_mag;
         input [N-2:0] v;
-        integer i, found;
+        integer i;
         begin
             msb_pos_mag = 0;
-            found = 0;
-            for (i = N-2; i >= 0; i = i - 1)
-                if (!found && v[i]) begin
+            for (i = N-2; i >= 0; i = i - 1) begin
+                if (v[i]) begin
                     msb_pos_mag = i;
-                    found = 1;
+                    // break out of loop: Verilog-2001 does NOT support disable-label,
+                    // so we return directly.
+                    return; 
                 end
+            end
         end
     endfunction
 
+
     wire [N-2:0] mag_bits = x_abs[N-2:0];
     integer msb_i;
-    reg signed [N-1:0] u_norm;   // normalized |x| to [0.5,1)
+    reg signed [N-1:0] u_norm;   // normalized |x| to [0.5, 1.0)
     integer den_shift;           // FRAC - msb_i
 
     always @* begin
@@ -103,9 +95,9 @@ module goldschmidt_struct
     end
 
     // ---------------- piecewise y0 = a*u + b -------------------------
-    wire seg1 = (u_norm < $signed(T1));             // [0.5, T1)
-    wire seg2 = (~seg1) && (u_norm < $signed(T2));  // [T1, T2)
-    wire seg3 = ~(seg1 | seg2);                     // [T2, 1.0)
+    wire seg1 = (u_norm < $signed(T1));
+    wire seg2 = (~seg1) && (u_norm < $signed(T2));
+    wire seg3 = ~(seg1 | seg2);
 
     wire signed [N-1:0] a_sel = seg1 ? $signed(A1) : (seg2 ? $signed(A2) : $signed(A3));
     wire signed [N-1:0] b_sel = seg1 ? $signed(B1) : (seg2 ? $signed(B2) : $signed(B3));
@@ -115,7 +107,7 @@ module goldschmidt_struct
     wire signed [N-1:0]   au_trunc;
     fxp_mul #(N,FRAC) UM0 (.a(a_sel), .b(u_norm), .y_full(au_full), .y_trunc(au_trunc));
 
-    // y0 = a*u + b  （对齐同一 Q 格式）
+    // y0 = a*u + b  （同一Q格式）
     wire signed [N:0]     y0_sum = $signed(au_trunc) + $signed(b_sel);
     wire signed [N-1:0]   y0     = y0_sum[N-1:0];
 
@@ -141,7 +133,6 @@ module goldschmidt_struct
     // y3 = y2*(2 - u*y2)
     wire signed [2*N-1:0] t2_full;
     wire signed [N-1:0]   t2;
-    // **修复：显式端口连接（Verilog-2001），避免 .name 隐式连接/语法错误**
     fxp_mul #(N,FRAC) UM5 (.a(u_norm), .b(y2), .y_full(t2_full), .y_trunc(t2));
     wire signed [N-1:0]   f2 = $signed(CONST_TWO) - $signed(t2);
     wire signed [2*N-1:0] y3_full;
@@ -154,9 +145,9 @@ module goldschmidt_struct
                           : ($signed(y3) >>> (-den_shift));
     wire signed [N-1:0] recip_mag = recip_mag_shifted;
 
-    // sign & zero handling (simple saturation on x==0)
+    // saturation constants
     wire signed [N-1:0] POS_MAX = {1'b0, {(N-1){1'b1}} };
-    wire signed [N-1:0] NEG_MAX = ({1'b1, {(N-1){1'b0}} }) + {{(N-1){1'b0}}, 1'b1};
+    wire signed [N-1:0] NEG_MAX = {1'b1, {(N-1){1'b0}} } + {{(N-1){1'b0}}, 1'b1};
 
     wire signed [N-1:0] recip_signed      = x_neg ? -recip_mag : recip_mag;
     wire signed [N-1:0] recip_sat_on_zero = x_neg ? NEG_MAX : POS_MAX;
