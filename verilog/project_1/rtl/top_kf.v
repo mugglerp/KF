@@ -1,19 +1,3 @@
-// ============================================================================
-// top_kf.v : Kalman Filter Top (2x2), STRICT 34-cycle frame controller
-// ----------------------------------------------------------------------------
-// Cycle map (0..33, total 34 cycles):
-//   00 : start PS(prior_state_serial) + PC(prior_cov_semipar)
-//   08 : start Z (est_output_serial)
-//   10 : start KG (kg_semipar) using R_prev  +  start Q (q_serial)   <-- 同拍
-//   12 : start R (r_serial)  → 产出 R_next（供下一帧）
-//   26 : start PST (post_state_serial)  [needs K, zhat, x_prior]
-//        start POC (post_cov_semipar)   [needs K, P_prior]
-//   33 : frame DONE; commit P_post -> P_prev, R_next -> R_prev, Q_next -> Q_prev
-// Notes:
-// - PC 使用 Q_prev（上一帧结果）；KG 使用 R_prev（上一帧结果）。
-// - R/Q 在本帧并行计算产生 R_next/Q_next，用于下一帧，解耦关键路径。
-// ============================================================================
-
 `include "fxp_types.vh"
 
 module top_kf
@@ -47,11 +31,8 @@ module top_kf
     // Global frame counter: down-counter 33..0  →  derive cyc = 0..33
     // ----------------------------------------------------------------------------
     reg       running;
-    reg [5:0] cnt;       // 33..0
-    wire [5:0] cyc = 6'd33 - cnt;      // 0..33 only valid when running=1
-
-    // 原始：在 cnt==0 拉高 done 并清 running
-    // 修改后：在 cnt==1 拉高 done；在 cnt==0 仅清 running（提交仍在 cnt==0）
+    reg [5:0] cnt;                 // 33..0
+    wire [5:0] cyc = 6'd33 - cnt;  // 0..33 (valid when running=1)
 
     always @(posedge clk or negedge rst_n)
     begin
@@ -63,24 +44,23 @@ module top_kf
         end
         else
         begin
-            done <= 1'b0; // one-cycle pulse by default
-
+            done <= 1'b0; // one-cycle pulse
             if(start && !running)
             begin
                 running <= 1'b1;
-                cnt     <= 6'd33;   // 仍然把 start 当拍作为“装载”，下一拍是 C0
+                cnt     <= 6'd33;       // next clock becomes C0
             end
             else if(running)
             begin
                 if(cnt == 6'd1)
                 begin
-                    // 在 C33（对外口径）拉高 done，同时把计数推进到 0
+                    // externally-visible C33
                     done <= 1'b1;
                     cnt  <= 6'd0;
                 end
                 else if(cnt == 6'd0)
                 begin
-                    // C33 的下一拍：完成提交并退出运行态
+                    // one cycle after C33
                     running <= 1'b0;
                 end
                 else
@@ -91,9 +71,22 @@ module top_kf
         end
     end
 
-    // 提交时刻保持不变：仍在“内部 C33”
+    // commit moment = internal C33 (cnt==0 while still running)
     wire commit_c33 = running && (cnt==6'd0);
 
+    // ----------------------------------------------------------------------------
+    // Declarations that are referenced early (avoid "used before declaration")
+    // ----------------------------------------------------------------------------
+    // Sub-module done signals (declared early so they can be used below)
+    wire ps_done, pc_done, z_done, kg_done, q_done, r_done, pst_done, poc_done;
+
+    // Sub-module outputs that may be tapped by later logic
+    wire signed [N-1:0] X_PRIOR00, X_PRIOR10;
+    wire signed [N-1:0] P_PRIOR00, P_PRIOR01, P_PRIOR10, P_PRIOR11;
+    wire signed [N-1:0] Z00, Z10;
+    wire signed [N-1:0] K00, K01, K10, K11;
+    wire signed [N-1:0] Q11_w, Q12_w, Q21_w, Q22_w;
+    wire signed [N-1:0] R11_w, R12_w, R21_w, R22_w;
 
     // ----------------------------------------------------------------------------
     // Frame-latency decoupled states: R_prev / Q_prev / P_prev
@@ -151,7 +144,19 @@ module top_kf
     end
 
     // ----------------------------------------------------------------------------
-    // Ready latches (frame-scoped) -- "更宽松"的关键
+    // Start pulses (single-cycle)
+    // ----------------------------------------------------------------------------
+    // 导出这些内部起始脉冲名，方便 testbench 分层探针（dut.ps_start 等）
+    wire ps_start  = running && (cyc==6'd0);
+    wire pc_start  = running && (cyc==6'd0);
+    wire z_start   = running && (cyc==6'd8);
+    wire kg_start  = running && (cyc==6'd10);  // 与 q 同拍
+    wire q_start   = running && (cyc==6'd10);  // 与 kg 同拍
+    wire r_start   = running && (cyc==6'd12);
+
+    // ----------------------------------------------------------------------------
+    // Ready latches (frame-scoped)
+    // （必须在 kg_done/z_done/pc_done 提前声明之后，才能在此使用）
     // ----------------------------------------------------------------------------
     reg kg_ready, z_ready, pc_ready;
     always @(posedge clk or negedge rst_n)
@@ -159,7 +164,7 @@ module top_kf
         if(!rst_n)
         begin
             kg_ready <= 1'b0;
-            z_ready  <= 1'b0;
+            z_ready <= 1'b0;
             pc_ready <= 1'b0;
         end
         else
@@ -168,7 +173,7 @@ module top_kf
             if (start && !running)
             begin
                 kg_ready <= 1'b0;
-                z_ready  <= 1'b0;
+                z_ready <= 1'b0;
                 pc_ready <= 1'b0;
             end
             // 任意拍捕获 done → 置位保持到帧末
@@ -182,36 +187,22 @@ module top_kf
             if (commit_c33)
             begin
                 kg_ready <= 1'b0;
-                z_ready  <= 1'b0;
+                z_ready <= 1'b0;
                 pc_ready <= 1'b0;
             end
         end
     end
 
-    // ----------------------------------------------------------------------------
-    // Start pulses (single-cycle, with readiness gating)
-    // ----------------------------------------------------------------------------
-    wire ps_start  = running && (cyc==6'd0);
-    wire pc_start  = running && (cyc==6'd0);
-    wire z_start   = running && (cyc==6'd8);
-    wire kg_start  = running && (cyc==6'd10);   // 与 q 同拍
-    wire q_start   = running && (cyc==6'd10);   // 与 kg 同拍
-    wire r_start   = running && (cyc==6'd12);
+    // —— K 就绪判定（当拍 done 也算就绪，避免同沿可见性问题）——
+    wire kg_ok = kg_done | kg_ready;
 
-    // 关键：固定 C26 启动（满足依赖才发脉冲）
-    // - KG 17-cycle 从 C10 起，典型在 C26 进入就绪，所以用 kg_ready 兜底
-    // - Z 4-cycle 从 C8 起，C12 前就绪；PC 8-cycle 从 C0 起，C8 前就绪
-    // 如果你的 KG 实际在 C27 才 done，可把 pst_start 改到 (cyc==27) && kg_ready；
-    // 但 POC 8-cycle 要在 C26 起以保证 C33 前结束（不要推迟）。
-    wire pst_start = running && (cyc==6'd26) && kg_ready && z_ready;
-    wire poc_start = running && (cyc==6'd26) && kg_ready && pc_ready;
+    // KG 需要就绪后再发后续的 pst/poc 脉冲（更稳）
+    wire pst_start = running && (cyc==6'd26) && kg_ok;  // 需要 K 与 zhat
+    wire poc_start = running && (cyc==6'd26) && kg_ok;  // 需要 K 与 P_prior
 
     // ----------------------------------------------------------------------------
-    // 1) Prior state (serial, 8 cyc) : X_PRIOR**
+    // 1) Prior state (serial, 8 cyc)
     // ----------------------------------------------------------------------------
-    wire ps_done;
-    wire signed [N-1:0] X_PRIOR00, X_PRIOR10;
-
     prior_state_serial #(N,FRAC) U_PS (
                            .clk(clk), .rst_n(rst_n), .start(ps_start),
                            .x00(x00_prev), .x10(x10_prev),
@@ -223,11 +214,8 @@ module top_kf
                        );
 
     // ----------------------------------------------------------------------------
-    // 2) Prior covariance (semi-parallel, 8 cyc) : P_PRIOR** (uses Q_prev)
+    // 2) Prior covariance (semi-parallel, 8 cyc)
     // ----------------------------------------------------------------------------
-    wire pc_done;
-    wire signed [N-1:0] P_PRIOR00, P_PRIOR01, P_PRIOR10, P_PRIOR11;
-
     prior_cov_semipar #(N,FRAC) U_PC (
                           .clk(clk), .rst_n(rst_n), .start(pc_start),
                           .a00(a00), .a01(a01), .a10(a10), .a11(a11),
@@ -239,11 +227,8 @@ module top_kf
                       );
 
     // ----------------------------------------------------------------------------
-    // 3) Estimated output (serial, 4 cyc) : Z00,Z10
+    // 3) Estimated output (serial, 4 cyc)
     // ----------------------------------------------------------------------------
-    wire z_done;
-    wire signed [N-1:0] Z00, Z10;
-
     est_output_serial #(N,FRAC) U_Z (
                           .clk(clk), .rst_n(rst_n), .start(z_start),
                           .h00(h00), .h01(h01), .h10(h10), .h11(h11),
@@ -253,11 +238,8 @@ module top_kf
                       );
 
     // ----------------------------------------------------------------------------
-    // 4) KG (semi-parallel, 17 cyc) : K00..K11   - uses P_PRIOR** and R_prev
+    // 4) KG (semi-parallel, 17 cyc)
     // ----------------------------------------------------------------------------
-    wire kg_done;
-    wire signed [N-1:0] K00, K01, K10, K11;
-
     kg_semipar #(N,FRAC) U_KG (
                    .clk(clk), .rst_n(rst_n), .start(kg_start),
                    .p_prior00(P_PRIOR00), .p_prior01(P_PRIOR01),
@@ -269,11 +251,8 @@ module top_kf
                );
 
     // ----------------------------------------------------------------------------
-    // 5) Q (serial, 3 cyc) : Q_next - 与 KG 同拍启动（C10）
+    // 5) Q (serial, 3 cyc)
     // ----------------------------------------------------------------------------
-    wire q_done;
-    wire signed [N-1:0] Q11_w, Q12_w, Q21_w, Q22_w;
-
     q_serial #(N,FRAC) U_Q (
                  .clk(clk), .rst_n(rst_n), .start(q_start),
                  .x00_now(X_PRIOR00), .x01_now(X_PRIOR10),
@@ -300,11 +279,8 @@ module top_kf
     end
 
     // ----------------------------------------------------------------------------
-    // 6) R (serial, 3 cyc) : R_next - 供下一帧
+    // 6) R (serial, 3 cyc)
     // ----------------------------------------------------------------------------
-    wire r_done;
-    wire signed [N-1:0] R11_w, R12_w, R21_w, R22_w;
-
     r_serial #(N,FRAC) U_R (
                  .clk(clk), .rst_n(rst_n), .start(r_start),
                  .beta(beta),
@@ -334,9 +310,8 @@ module top_kf
     end
 
     // ----------------------------------------------------------------------------
-    // 7) Posterior state (serial, 5 cyc) : X00_post, X10_post
+    // 7) Posterior state (serial, 5 cyc)
     // ----------------------------------------------------------------------------
-    wire pst_done;
     post_state_serial #(N,FRAC) U_PST (
                           .clk(clk), .rst_n(rst_n), .start(pst_start),
                           .x00_prior(X_PRIOR00), .x10_prior(X_PRIOR10),
@@ -348,9 +323,8 @@ module top_kf
                       );
 
     // ----------------------------------------------------------------------------
-    // 8) Posterior covariance (semi-parallel, 8 cyc) : P_post**
+    // 8) Posterior covariance (semi-parallel, 8 cyc)
     // ----------------------------------------------------------------------------
-    wire poc_done;
     post_cov_semipar #(N,FRAC) U_POC (
                          .clk(clk), .rst_n(rst_n), .start(poc_start),
                          .k00(K00), .k01(K01), .k10(K10), .k11(K11),

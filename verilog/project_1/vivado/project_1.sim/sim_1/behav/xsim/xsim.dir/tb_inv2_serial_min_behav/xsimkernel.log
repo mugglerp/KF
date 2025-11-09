@@ -1,0 +1,7 @@
+Running: xsim.dir/tb_inv2_serial_min_behav/xsimk.exe -simmode gui -wdb tb_inv2_serial_min_behav.wdb -simrunnum 0 -socket 5198
+Design successfully loaded
+Design Loading Memory Usage: 10816 KB (Peak: 10816 KB)
+Design Loading CPU Usage: 0 ms
+Simulation completed
+Simulation Memory Usage: 11840 KB (Peak: 11840 KB)
+Simulation CPU Usage: 30 ms

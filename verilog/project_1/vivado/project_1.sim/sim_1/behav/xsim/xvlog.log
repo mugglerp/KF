@@ -1,0 +1,43 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/KF/verilog/project_1/rtl/est_output_serial.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module est_output_serial
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/KF/verilog/project_1/rtl/fxp_abs.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module fxp_abs
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/KF/verilog/project_1/rtl/fxp_add.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module fxp_add
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/KF/verilog/project_1/rtl/fxp_mul.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module fxp_mul
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/KF/verilog/project_1/rtl/fxp_sub.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module fxp_sub
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/KF/verilog/project_1/rtl/goldschmidt_struct.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module goldschmidt_struct
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/KF/verilog/project_1/rtl/inv2_serial.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module inv2_serial
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/KF/verilog/project_1/rtl/kg_semipar.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module kg_semipar
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/KF/verilog/project_1/rtl/post_cov_semipar.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module post_cov_semipar
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/KF/verilog/project_1/rtl/post_state_serial.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module post_state_serial
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/KF/verilog/project_1/rtl/prior_cov_semipar.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module prior_cov_semipar
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/KF/verilog/project_1/rtl/prior_state_serial.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module prior_state_serial
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/KF/verilog/project_1/rtl/q_serial.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module q_serial
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/KF/verilog/project_1/rtl/r_serial.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module r_serial
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/KF/verilog/project_1/rtl/subsystem_eq1.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module subsystem_eq1
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/KF/verilog/project_1/rtl/top_kf_36c.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module top_kf
+WARNING: [VRFC 10-3380] identifier 'R11_next' is used before its declaration [C:/KF/verilog/project_1/rtl/top_kf_36c.v:99]
+WARNING: [VRFC 10-3380] identifier 'R12_next' is used before its declaration [C:/KF/verilog/project_1/rtl/top_kf_36c.v:100]
+WARNING: [VRFC 10-3380] identifier 'R21_next' is used before its declaration [C:/KF/verilog/project_1/rtl/top_kf_36c.v:101]
+WARNING: [VRFC 10-3380] identifier 'R22_next' is used before its declaration [C:/KF/verilog/project_1/rtl/top_kf_36c.v:102]
+WARNING: [VRFC 10-3380] identifier 'Q11_next' is used before its declaration [C:/KF/verilog/project_1/rtl/top_kf_36c.v:103]
+WARNING: [VRFC 10-3380] identifier 'Q12_next' is used before its declaration [C:/KF/verilog/project_1/rtl/top_kf_36c.v:104]
+WARNING: [VRFC 10-3380] identifier 'Q21_next' is used before its declaration [C:/KF/verilog/project_1/rtl/top_kf_36c.v:105]
+WARNING: [VRFC 10-3380] identifier 'Q22_next' is used before its declaration [C:/KF/verilog/project_1/rtl/top_kf_36c.v:106]
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/KF/verilog/project_1/tb/tb_top_kf_manyframes_rlc.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_top_kf_manyframes_rlc
+WARNING: [VRFC 10-3380] identifier 'done' is used before its declaration [C:/KF/verilog/project_1/tb/tb_top_kf_manyframes_rlc.v:55]
