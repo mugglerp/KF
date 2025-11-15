@@ -3,10 +3,9 @@
 // Policy 保持不变；把 “+” 改成 fxp_add；最终 O_raw 仍按 FRAC 对齐截断
 // 要修改：加法器不见了 -> 已改为 fxp_add
 // ============================================================================
-`include "fxp_types.vh"
 
 module subsystem_eq1
-    #( parameter N=`FXP_N, parameter FRAC=`FXP_FRAC )
+    #( parameter N=20, parameter FRAC=10 )
      (
          input  signed [N-1:0] I1,
          input  signed [N-1:0] I2,

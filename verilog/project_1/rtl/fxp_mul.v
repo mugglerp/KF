@@ -1,7 +1,5 @@
-`include "fxp_types.vh"
-
 module fxp_mul
-    #(parameter N = `FXP_N, parameter FRAC = `FXP_FRAC)
+    #(parameter N = 20, parameter FRAC = 10)
      (
          input  signed [N-1:0] a,
          input  signed [N-1:0] b,

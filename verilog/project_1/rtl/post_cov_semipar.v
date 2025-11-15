@@ -6,10 +6,9 @@
 // - Latency: 8 cycles (0..7), done 在 cyc==7 拉高
 // - 符号扩展与小数点对齐：P(N,FRAC) -> P_2N = (sign-extend)<<FRAC 使小数位从 FRAC 对齐到 2*FRAC
 // ============================================================================
-`include "fxp_types.vh"
 
 module post_cov_semipar
-    #( parameter integer N=`FXP_N, parameter integer FRAC=`FXP_FRAC )
+    #( parameter integer N=20, parameter integer FRAC=10 )
      (
          input  wire clk,
          input  wire rst_n,

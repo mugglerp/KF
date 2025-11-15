@@ -1,10 +1,9 @@
 `timescale 1ns/1ps
-`include "fxp_types.vh"
 
 // Minimal testbench for kg_semipar (H=I, P=I, R=0.25I → K=0.8I)
 module tb_kg_semipar_min;
-    localparam integer N    = `FXP_N;
-    localparam integer FRAC = `FXP_FRAC;
+    localparam integer N    = 20;
+    localparam integer FRAC = 10;
     localparam integer CLK_PERIOD_NS = 10;
     localparam integer EPS_LSB = 2;
 

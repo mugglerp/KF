@@ -12,20 +12,20 @@
 // aligned to FRAC. Q is sign-extended to 2N and left-shifted by FRAC
 // to align with mul full products.
 //
-// Cycle map (0..7):
-//   0: m0=p00*a00, m1=p01*a01, m2=p10*a00, m3=p11*a01
-//   1: t00=(m0+m1)>>FRAC, t10=(m2+m3)>>FRAC
-//   2: m0=p00*a10, m1=p01*a11, m2=p10*a10, m3=p11*a11
-//   3: t01=(m0+m1)>>FRAC, t11=(m2+m3)>>FRAC
-//   4: m0=a00*t00, m1=a01*t10, m2=a10*t00, m3=a11*t10
-//   5: s00_2N=(m0+m1)+Q00_2N, s10_2N=(m2+m3)+Q10_2N
-//   6: m0=a00*t01, m1=a01*t11, m2=a10*t01, m3=a11*t11
-//   7: s01_2N=(m0+m1)+Q01_2N, s11_2N=(m2+m3)+Q11_2N, done=1
+// Cycle map (start at C0, done at C8, total 9 cycles):
+//   C0(start): cyc=1, m0=p00*a00, m1=p01*a01, m2=p10*a00, m3=p11*a01
+//   C1: cyc=2, t00=(m0+m1)>>FRAC, t10=(m2+m3)>>FRAC
+//   C2: cyc=3, m0=p00*a10, m1=p01*a11, m2=p10*a10, m3=p11*a11
+//   C3: cyc=4, t01=(m0+m1)>>FRAC, t11=(m2+m3)>>FRAC
+//   C4: cyc=5, m0=a00*t00, m1=a01*t10, m2=a10*t00, m3=a11*t10
+//   C5: cyc=6, s00_2N=(sum01_2N+Q00_2N), s10_2N=(sum23_2N+Q10_2N)
+//   C6: cyc=7, m0=a00*t01, m1=a01*t11, m2=a10*t01, m3=a11*t11
+//   C7: cyc=8, s01_2N=(sum01_2N+Q01_2N), s11_2N=(sum23_2N+Q11_2N)
+//   C8: done=1
 // ============================================================================
-`include "fxp_types.vh"
 
 module prior_cov_semipar
-#( parameter integer N=`FXP_N, parameter integer FRAC=`FXP_FRAC )
+#( parameter integer N=20, parameter integer FRAC=10 )
 (
     input  wire                     clk,
     input  wire                     rst_n,
@@ -74,6 +74,14 @@ module prior_cov_semipar
     fxp_add #(2*N) U_SUM01 (.a(m0_f), .b(m1_f), .y_full(sum01_f), .y_trunc(sum01_2N));
     fxp_add #(2*N) U_SUM23 (.a(m2_f), .b(m3_f), .y_full(sum23_f), .y_trunc(sum23_2N));
 
+    // -------- +Q adders (2N domain, 4 parallel) --------
+    wire signed [2*N:0]   addQ00_f, addQ10_f, addQ01_f, addQ11_f;
+    wire signed [2*N-1:0] addQ00_2N, addQ10_2N, addQ01_2N, addQ11_2N;
+    fxp_add #(2*N) U_ADDQ00 (.a(sum01_2N), .b(Q00_2N), .y_full(addQ00_f), .y_trunc(addQ00_2N));
+    fxp_add #(2*N) U_ADDQ10 (.a(sum23_2N), .b(Q10_2N), .y_full(addQ10_f), .y_trunc(addQ10_2N));
+    fxp_add #(2*N) U_ADDQ01 (.a(sum01_2N), .b(Q01_2N), .y_full(addQ01_f), .y_trunc(addQ01_2N));
+    fxp_add #(2*N) U_ADDQ11 (.a(sum23_2N), .b(Q11_2N), .y_full(addQ11_f), .y_trunc(addQ11_2N));
+
     // -------- T matrix (N domain) --------
     reg signed [N-1:0] t00, t01, t10, t11;
 
@@ -101,19 +109,17 @@ module prior_cov_semipar
 
             if(start && !running) begin
                 running<=1'b1;
-                cyc<=0;
+                cyc<=4'd1;
+                // C0: start拉起当拍，配置第一组乘法
+                m0_a<=p00; m0_b<=a00;
+                m1_a<=p01; m1_b<=a01;
+                m2_a<=p10; m2_b<=a00;
+                m3_a<=p11; m3_b<=a01;
             end else if(running) begin
                 cyc <= cyc + 4'd1;
             end
 
             case(cyc)
-                // 0) T column-0: P * [a00;a01]
-                4'd0: begin
-                    m0_a<=p00; m0_b<=a00;
-                    m1_a<=p01; m1_b<=a01;
-                    m2_a<=p10; m2_b<=a00;
-                    m3_a<=p11; m3_b<=a01;
-                end
                 // 1) latch t00,t10 (N)
                 4'd1: begin
                     t00 <= trunc2N_to_N(sum01_2N);
@@ -140,8 +146,8 @@ module prior_cov_semipar
                 end
                 // 5) write s00_2N, s10_2N (+Q00_2N, +Q10_2N)
                 4'd5: begin
-                    s00_2N <= sum01_2N + Q00_2N;
-                    s10_2N <= sum23_2N + Q10_2N;
+                    s00_2N <= addQ00_2N;
+                    s10_2N <= addQ10_2N;
                 end
                 // 6) S column-1: A * [t01;t11]
                 4'd6: begin
@@ -150,10 +156,10 @@ module prior_cov_semipar
                     m2_a<=a10; m2_b<=t01;
                     m3_a<=a11; m3_b<=t11;
                 end
-                // 7) write s01_2N, s11_2N (+Q01_2N, +Q11_2N) and finish
+                // 7) write s01_2N, s11_2N (+Q01_2N, +Q11_2N)
                 4'd7: begin
-                    s01_2N <= sum01_2N + Q01_2N;
-                    s11_2N <= sum23_2N + Q11_2N;
+                    s01_2N <= addQ01_2N;
+                    s11_2N <= addQ11_2N;                    
                     running<=1'b0; done<=1'b1;
                 end
                 default: ;

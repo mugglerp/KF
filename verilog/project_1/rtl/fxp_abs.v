@@ -1,7 +1,5 @@
-`include "fxp_types.vh"
-
 module fxp_abs
-    #( parameter N=`FXP_N )
+    #( parameter N=20 )
      (
          input  signed [N-1:0] a,
          output signed [N-1:0] y

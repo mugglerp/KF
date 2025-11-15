@@ -1,7 +1,0 @@
-Running: xsim.dir/tb_q_serial_min_behav/xsimk.exe -simmode gui -wdb tb_q_serial_min_behav.wdb -simrunnum 0 -socket 10090
-Design successfully loaded
-Design Loading Memory Usage: 9888 KB (Peak: 9888 KB)
-Design Loading CPU Usage: 46 ms
-Simulation completed
-Simulation Memory Usage: 10920 KB (Peak: 10920 KB)
-Simulation CPU Usage: 62 ms

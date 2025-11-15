@@ -1,0 +1,4 @@
+Running: xsim.dir/tb_top_kf_manyframes_rlc_behav/xsimk.exe -simmode gui -wdb tb_top_kf_manyframes_rlc_behav.wdb -simrunnum 0 -socket 5615
+Design successfully loaded
+Design Loading Memory Usage: 7872 KB (Peak: 7872 KB)
+Design Loading CPU Usage: 15 ms

@@ -1,7 +1,0 @@
-Running: xsim.dir/tb_kg_semipar_min_behav/xsimk.exe -simmode gui -wdb tb_kg_semipar_min_behav.wdb -simrunnum 0 -socket 5809
-Design successfully loaded
-Design Loading Memory Usage: 9952 KB (Peak: 9952 KB)
-Design Loading CPU Usage: 0 ms
-Simulation completed
-Simulation Memory Usage: 10976 KB (Peak: 10976 KB)
-Simulation CPU Usage: 31 ms

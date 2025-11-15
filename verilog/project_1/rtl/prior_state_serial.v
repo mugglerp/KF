@@ -1,15 +1,13 @@
-`include "fxp_types.vh"
-
 // ============================================================================
 // prior_state_serial (Fig.c strict) with 1-cycle settle after s/t ready
 // Ax -> t00,t10 ; Bu -> s00,s10 ; x = t + s
 // Resources: 2x MUL + 1x ADD
 // Latency  : 8 cycles (0..7)  [state 5 is the settle/wait cycle]
-// 要修改：加法器并没有被使用 -> 已改为全流程复用 fxp_add
+// 要修改:加法器并没有被使用 -> 已改为全流程复用 fxp_add
 // ============================================================================
 module prior_state_serial
-    #( parameter integer N=`FXP_N,
-       parameter integer FRAC=`FXP_FRAC )
+    #( parameter integer N=20,
+       parameter integer FRAC=10 )
      (
          input  wire                   clk,
          input  wire                   rst_n,
@@ -51,7 +49,7 @@ module prior_state_serial
 
     wire signed [2*N  :0] add_full_2N;
     wire signed [2*N-1:0] add_2N; // fxp_add 的“同宽截断”（去最高位）
-    fxp_add #(2*`FXP_N) U_A0(.a(add_in_a), .b(add_in_b), .y_full(add_full_2N), .y_trunc(add_2N));
+    fxp_add #(2*N) U_A0(.a(add_in_a), .b(add_in_b), .y_full(add_full_2N), .y_trunc(add_2N));
 
     // 将 2N 对齐回 N（按 FRAC 右移）：这一步不是 fxp_add 的同宽截断能替代的
     wire signed [N-1:0] add_ts_to_N = add_2N[FRAC+N-1 : FRAC];

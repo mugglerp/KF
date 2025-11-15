@@ -10,11 +10,9 @@
 
 //加法器bug先不修
 
-`include "fxp_types.vh"
-
 module kg_semipar #(
-        parameter integer N    = `FXP_N,
-        parameter integer FRAC = `FXP_FRAC
+        parameter integer N    = 20,
+        parameter integer FRAC = 10
     ) (
         input  wire                   clk,
         input  wire                   rst_n,

@@ -1,10 +1,9 @@
 `timescale 1ns/1ps
-`include "fxp_types.vh"
 
 // tb_prior_state_serial_min.v
 module tb_prior_state_serial_min;
-    localparam integer N    = `FXP_N;
-    localparam integer FRAC = `FXP_FRAC;
+    localparam integer N    = 20;
+    localparam integer FRAC = 10;
     localparam integer S    = (1<<FRAC);
     localparam integer CLK_PERIOD_NS = 10;
     localparam integer EPS = 1;   // 允许误差 ±1 LSB

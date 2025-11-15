@@ -1,22 +1,21 @@
 `timescale 1ns/1ps
-`include "fxp_types.vh"
 
-// Many-frame RLC closed-loop testbench (36-cycle frame)
+// Many-frame RLC closed-loop testbench (34-cycle frame)
 // State/matrix per (14)(15); 100 Hz sine (10 A peak); small gaussian-like noise.
 module tb_top_kf_manyframes_rlc;
 
     // ---------------- Params / fixed-point ----------------
-    localparam integer N    = `FXP_N;       // e.g. 20
-    localparam integer FRAC = `FXP_FRAC;    // e.g. 10
+    localparam integer N    = 20;       // e.g. 20
+    localparam integer FRAC = 10;    // e.g. 10
     localparam integer CLK_PERIOD_NS = 10;  // 100 MHz
 
-    // === 关键：将帧长设为 36 拍 ===
-    localparam integer FRAME_CYCLES  = 36;  // C0..C35，done 何时到由 DUT 决定
-    localparam integer HARD_LIMIT   = FRAME_CYCLES + 4;  // 容忍+4拍（可调）
+    // === 关键：将帧长设为 34 周期 ===
+    localparam integer FRAME_CYCLES  = 34;  // C0..C33，done 何时到由 DUT 决定
+    localparam integer HARD_LIMIT   = FRAME_CYCLES + 4;  // 瀹瑰繊+4鎷嶏紙鍙�皟锛?
     localparam integer FRAMES        = 4000;
     localparam integer LOG_EVERY     = 100;
 
-    // 仅用于正弦相位
+    // 浠呯敤浜庢�寮︾浉浣?
     localparam real FS_HZ  = 10000.0;                // 10 kHz
     localparam real TWO_PI = 6.283185307179586;
     localparam integer S   = (1<<FRAC);
@@ -51,7 +50,7 @@ module tb_top_kf_manyframes_rlc;
         begin
             local_cyc = 0;
             @(posedge clk);
-            // 等待 done = 1，同时记录实际用时
+            // 绛夊緟 done = 1锛屽悓鏃惰�褰曞疄闄呯敤鏃?
             while(!done)
             begin
                 local_cyc = local_cyc + 1;
@@ -61,7 +60,7 @@ module tb_top_kf_manyframes_rlc;
                 end
                 @(posedge clk);
             end
-            // 追加一个提交拍
+            // 杩藉姞涓?涓�彁浜ゆ媿
             @(posedge clk);
         end
     endtask
@@ -118,7 +117,7 @@ module tb_top_kf_manyframes_rlc;
         end
     endfunction
 
-    // Poor-man gaussian ~N(0,1) (需要一个形参符合 Verilog-2001)
+    // Poor-man gaussian ~N(0,1) (闇?瑕佷竴涓�舰鍙傜�鍚? Verilog-2001)
     function real gauss01;
         input dummy;
         integer i;
@@ -140,7 +139,7 @@ module tb_top_kf_manyframes_rlc;
     real it_amp, it_freq, it_val, noise_sigma_it, noise_sigma_z;
     real it_noise, z_noise0, z_noise1, theta;
 
-    // 仅作统计（非强校验）
+    // 浠呬綔缁熻�锛堥潪寮烘牎楠岋級
     integer frame_cyc;
     reg running, done_q;
     always @(posedge clk or negedge rst_n)
@@ -226,13 +225,13 @@ module tb_top_kf_manyframes_rlc;
 
         do_reset();
 
-        // 可选：记录到 xsim 工作目录
+        // 鍙�?夛細璁板綍鍒? xsim 宸ヤ綔鐩�綍
         fd = $fopen("rlc_trace.csv","w");
         $fdisplay(fd,"k,il,il_hat,vc,vc_hat,vR2,vR2_hat,iR2,iR2_hat");
 
         for (k=0; k<FRAMES; k=k+1)
         begin
-            // 生成输入
+            // 鐢熸垚杈撳叆
             theta    = TWO_PI*(it_freq/FS_HZ)*k;
             it_noise = noise_sigma_it * gauss01(1'b0);
             it_val   = it_amp * $sin(theta) + it_noise;
@@ -243,8 +242,8 @@ module tb_top_kf_manyframes_rlc;
             il = il_next;
             vc = vc_next;
 
-            // KF 输入
-            u00 = fxp(it_val);   // ★关键修复点
+            // KF 杈撳叆
+            u00 = fxp(it_val);   // 鈽呭叧閿�慨澶嶇偣
             u10 = fxp(0.0);
 
             // z_k = H x_k + noise
@@ -253,23 +252,23 @@ module tb_top_kf_manyframes_rlc;
             vR2 = H00r*il + H01r*vc + z_noise0;
             iR2 = H10r*il + H11r*vc + z_noise1;
 
-            // 驱动一帧
+            // 椹卞姩涓?甯?
             z00_meas = fxp(vR2);
             z10_meas = fxp(iR2);
             pulse_start();
-            wait_done();   // <- 36-cycle 帧：严格等 done 再继续
+            wait_done();   // <- 36-cycle 甯э細涓ユ牸绛? done 鍐嶇户缁?
 
-            // 回写 prev（闭环）
+            // 鍥炲啓 prev锛堥棴鐜�級
             x00_prev = X00_post;
             x10_prev = X10_post;
 
-            // 估计输出（不访问 DUT 内部）
+            // 浼拌�杈撳嚭锛堜笉璁块棶 DUT 鍐呴儴锛?
             il_hat  = fxp_to_real(X00_post);
             vc_hat  = fxp_to_real(X10_post);
             vR2_hat = H00r*il_hat + H01r*vc_hat;
             iR2_hat = H10r*il_hat + H11r*vc_hat;
 
-            // 记录 / 打印
+            // 璁板綍 / 鎵撳嵃
             if ((k%LOG_EVERY)==0)
             begin
                 d0 = X00_post - fxp(il);
@@ -281,7 +280,7 @@ module tb_top_kf_manyframes_rlc;
                       k, il, il_hat, vc, vc_hat, vR2, vR2_hat, iR2, iR2_hat);
         end
 
-        $display("DONE %0d frames (36-cycle handshake).", FRAMES);
+        $display("DONE %0d frames (34-cycle handshake).", FRAMES);
         $fclose(fd);
         $finish;
     end

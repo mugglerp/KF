@@ -1,8 +1,7 @@
 `timescale 1ns/1ps
-`include "fxp_types.vh"
 
 module tb_r_serial_min;
-    localparam integer N=`FXP_N, FRAC=`FXP_FRAC, S=(1<<FRAC);
+    localparam integer N=20, FRAC=10, S=(1<<FRAC);
     reg clk,rst_n,start;
     reg  signed [N-1:0] beta,s00,s01,s10,s11,z00,z10,zh0,zh1;
     wire done;

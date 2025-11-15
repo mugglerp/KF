@@ -1,7 +1,0 @@
-Running: xsim.dir/tb_prior_cov_semipar_min_behav/xsimk.exe -simmode gui -wdb tb_prior_cov_semipar_min_behav.wdb -simrunnum 0 -socket 4721
-Design successfully loaded
-Design Loading Memory Usage: 9908 KB (Peak: 9908 KB)
-Design Loading CPU Usage: 0 ms
-Simulation completed
-Simulation Memory Usage: 10944 KB (Peak: 10944 KB)
-Simulation CPU Usage: 31 ms

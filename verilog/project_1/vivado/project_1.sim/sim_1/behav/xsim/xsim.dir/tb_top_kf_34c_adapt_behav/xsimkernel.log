@@ -1,7 +1,0 @@
-Running: xsim.dir/tb_top_kf_34c_adapt_behav/xsimk.exe -simmode gui -wdb tb_top_kf_34c_adapt_behav.wdb -simrunnum 0 -socket 1872
-Design successfully loaded
-Design Loading Memory Usage: 10128 KB (Peak: 10128 KB)
-Design Loading CPU Usage: 0 ms
-Simulation completed
-Simulation Memory Usage: 11160 KB (Peak: 11160 KB)
-Simulation CPU Usage: 61 ms

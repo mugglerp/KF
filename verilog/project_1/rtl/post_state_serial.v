@@ -1,5 +1,3 @@
-`include "fxp_types.vh"
-
 // ============================================================================
 // post_state_serial : x_post = x_prior + K * (z_meas - z_hat)
 // Ports rule: inputs lowercase, matrix/vector outputs UPPERCASE
@@ -7,7 +5,7 @@
 // - MUL keeps 2N full precision; sums in 2N; truncate to N at FRAC when output
 // ============================================================================
 module post_state_serial
-#( parameter integer N=`FXP_N, parameter integer FRAC=`FXP_FRAC )
+#( parameter integer N=20, parameter integer FRAC=10 )
 (
     input  wire                     clk,
     input  wire                     rst_n,

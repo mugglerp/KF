@@ -1,10 +1,9 @@
 `timescale 1ns/1ps
-`include "fxp_types.vh"
 
 // tb_post_state_serial_min.v
 module tb_post_state_serial_min;
-    localparam integer N    = `FXP_N;
-    localparam integer FRAC = `FXP_FRAC;
+    localparam integer N    = 20;
+    localparam integer FRAC = 10;
     localparam integer S    = (1<<FRAC);
     localparam integer CLK_PERIOD_NS = 10;
     localparam integer EPS = 2;

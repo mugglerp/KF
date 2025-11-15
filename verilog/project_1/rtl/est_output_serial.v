@@ -5,10 +5,9 @@
 // - Outputs Z00 (row0), Z10 (row1) truncated to N at FRAC
 // - Latency: 4 cycles from start (c0..c3)
 // ============================================================================
-`include "fxp_types.vh"
 
 module est_output_serial
-    #( parameter integer N=`FXP_N, parameter integer FRAC=`FXP_FRAC )
+    #( parameter integer N=20, parameter integer FRAC=10 )
      (
          input  wire                     clk,
          input  wire                     rst_n,

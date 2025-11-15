@@ -1,8 +1,5 @@
-// fxp_sub.v
-`include "fxp_types.vh"
-
 module fxp_sub
-    #(parameter N = `FXP_N)
+    #(parameter N = 20)
      (
          input  signed [N-1:0] a,
          input  signed [N-1:0] b,

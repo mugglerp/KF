@@ -1,8 +1,7 @@
 `timescale 1ns/1ps
-`include "fxp_types.vh"
 
 module tb_prior_cov_semipar_min;
-    localparam integer N=`FXP_N, FRAC=`FXP_FRAC, S=(1<<FRAC);
+    localparam integer N=20, FRAC=10, S=(1<<FRAC);
     reg clk,rst_n,start;
     reg  signed [N-1:0] a00,a01,a10,a11;
     reg  signed [N-1:0] p00,p01,p10,p11;
