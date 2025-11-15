@@ -1,6 +1,6 @@
 webtalk_init -webtalk_dir C:/KF/verilog/project_1/vivado/project_1/project_1.sim/sim_1/behav/xsim/xsim.dir/tb_top_kf_manyframes_rlc_behav/webtalk/
 webtalk_register_client -client project
-webtalk_add_data -client project -key date_generated -value "Sat Nov 15 16:33:36 2025" -context "software_version_and_target_device"
+webtalk_add_data -client project -key date_generated -value "Sat Nov 15 17:30:16 2025" -context "software_version_and_target_device"
 webtalk_add_data -client project -key product_version -value "XSIM v2019.1 (64-bit)" -context "software_version_and_target_device"
 webtalk_add_data -client project -key build_version -value "2552052" -context "software_version_and_target_device"
 webtalk_add_data -client project -key os_platform -value "WIN64" -context "software_version_and_target_device"
@@ -14,7 +14,7 @@ webtalk_add_data -client project -key target_package -value "not_applicable" -co
 webtalk_add_data -client project -key target_speed -value "not_applicable" -context "software_version_and_target_device"
 webtalk_add_data -client project -key random_id -value "bcf26341-a3b8-475a-8118-4909f419c634" -context "software_version_and_target_device"
 webtalk_add_data -client project -key project_id -value "6d0555ac04d34896af972f2cd39ab6d4" -context "software_version_and_target_device"
-webtalk_add_data -client project -key project_iteration -value "6" -context "software_version_and_target_device"
+webtalk_add_data -client project -key project_iteration -value "8" -context "software_version_and_target_device"
 webtalk_add_data -client project -key os_name -value "Windows Server 2016 or Windows 10" -context "user_environment"
 webtalk_add_data -client project -key os_release -value "major release  (build 9200)" -context "user_environment"
 webtalk_add_data -client project -key cpu_name -value "Intel(R) Core(TM) Ultra 9 285H" -context "user_environment"
@@ -27,7 +27,7 @@ webtalk_add_data -client xsim -key Command -value "xsim" -context "xsim\\command
 webtalk_add_data -client xsim -key trace_waveform -value "true" -context "xsim\\usage"
 webtalk_add_data -client xsim -key runtime -value "1520055 ns" -context "xsim\\usage"
 webtalk_add_data -client xsim -key iteration -value "0" -context "xsim\\usage"
-webtalk_add_data -client xsim -key Simulation_Time -value "1.09_sec" -context "xsim\\usage"
-webtalk_add_data -client xsim -key Simulation_Memory -value "16968_KB" -context "xsim\\usage"
-webtalk_transmit -clientid 4059380085 -regid "" -xml C:/KF/verilog/project_1/vivado/project_1/project_1.sim/sim_1/behav/xsim/xsim.dir/tb_top_kf_manyframes_rlc_behav/webtalk/usage_statistics_ext_xsim.xml -html C:/KF/verilog/project_1/vivado/project_1/project_1.sim/sim_1/behav/xsim/xsim.dir/tb_top_kf_manyframes_rlc_behav/webtalk/usage_statistics_ext_xsim.html -wdm C:/KF/verilog/project_1/vivado/project_1/project_1.sim/sim_1/behav/xsim/xsim.dir/tb_top_kf_manyframes_rlc_behav/webtalk/usage_statistics_ext_xsim.wdm -intro "<H3>XSIM Usage Report</H3><BR>"
+webtalk_add_data -client xsim -key Simulation_Time -value "1.00_sec" -context "xsim\\usage"
+webtalk_add_data -client xsim -key Simulation_Memory -value "17040_KB" -context "xsim\\usage"
+webtalk_transmit -clientid 370942459 -regid "" -xml C:/KF/verilog/project_1/vivado/project_1/project_1.sim/sim_1/behav/xsim/xsim.dir/tb_top_kf_manyframes_rlc_behav/webtalk/usage_statistics_ext_xsim.xml -html C:/KF/verilog/project_1/vivado/project_1/project_1.sim/sim_1/behav/xsim/xsim.dir/tb_top_kf_manyframes_rlc_behav/webtalk/usage_statistics_ext_xsim.html -wdm C:/KF/verilog/project_1/vivado/project_1/project_1.sim/sim_1/behav/xsim/xsim.dir/tb_top_kf_manyframes_rlc_behav/webtalk/usage_statistics_ext_xsim.wdm -intro "<H3>XSIM Usage Report</H3><BR>"
 webtalk_terminate

@@ -9,15 +9,11 @@ WARNING: [XSIM 43-4099] "C:/KF/verilog/project_1/rtl/prior_state_serial.v" Line 
 WARNING: [XSIM 43-4099] "C:/KF/verilog/project_1/rtl/fxp_mul.v" Line 1. Module fxp_mul doesn't have a timescale but at least one module in design has a timescale.
 WARNING: [XSIM 43-4099] "C:/KF/verilog/project_1/rtl/fxp_mul.v" Line 1. Module fxp_mul doesn't have a timescale but at least one module in design has a timescale.
 WARNING: [XSIM 43-4099] "C:/KF/verilog/project_1/rtl/fxp_add.v" Line 1. Module fxp_add(N=40) doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "C:/KF/verilog/project_1/rtl/prior_cov_semipar.v" Line 27. Module prior_cov_semipar doesn't have a timescale but at least one module in design has a timescale.
+WARNING: [XSIM 43-4099] "C:/KF/verilog/project_1/rtl/prior_cov_semipar.v" Line 26. Module prior_cov_semipar doesn't have a timescale but at least one module in design has a timescale.
 WARNING: [XSIM 43-4099] "C:/KF/verilog/project_1/rtl/fxp_mul.v" Line 1. Module fxp_mul doesn't have a timescale but at least one module in design has a timescale.
 WARNING: [XSIM 43-4099] "C:/KF/verilog/project_1/rtl/fxp_mul.v" Line 1. Module fxp_mul doesn't have a timescale but at least one module in design has a timescale.
 WARNING: [XSIM 43-4099] "C:/KF/verilog/project_1/rtl/fxp_mul.v" Line 1. Module fxp_mul doesn't have a timescale but at least one module in design has a timescale.
 WARNING: [XSIM 43-4099] "C:/KF/verilog/project_1/rtl/fxp_mul.v" Line 1. Module fxp_mul doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "C:/KF/verilog/project_1/rtl/fxp_add.v" Line 1. Module fxp_add(N=40) doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "C:/KF/verilog/project_1/rtl/fxp_add.v" Line 1. Module fxp_add(N=40) doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "C:/KF/verilog/project_1/rtl/fxp_add.v" Line 1. Module fxp_add(N=40) doesn't have a timescale but at least one module in design has a timescale.
-WARNING: [XSIM 43-4099] "C:/KF/verilog/project_1/rtl/fxp_add.v" Line 1. Module fxp_add(N=40) doesn't have a timescale but at least one module in design has a timescale.
 WARNING: [XSIM 43-4099] "C:/KF/verilog/project_1/rtl/fxp_add.v" Line 1. Module fxp_add(N=40) doesn't have a timescale but at least one module in design has a timescale.
 WARNING: [XSIM 43-4099] "C:/KF/verilog/project_1/rtl/fxp_add.v" Line 1. Module fxp_add(N=40) doesn't have a timescale but at least one module in design has a timescale.
 WARNING: [XSIM 43-4099] "C:/KF/verilog/project_1/rtl/est_output_serial.v" Line 9. Module est_output_serial doesn't have a timescale but at least one module in design has a timescale.
