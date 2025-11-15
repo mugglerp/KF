@@ -16,9 +16,9 @@
 
 | 模块 | 架构 | 资源 | 周期 | 说明 |
 |------|------|------|------|------|
-| Prior State | 串行 | 2 乘法器, 1 加法器 | 8 | x̂(k\|k-1) = Ax(k-1) + Bu(k) |
-| Prior Covariance | 半并行 | 4 乘法器, 6 加法器 | 9 | P̂(k\|k-1) = APA^T + Q |
-| Estimated Output | 串行 | 2 乘法器, 1 加法器 | 4 | ẑ(k) = Hx̂(k\|k-1) |
+| Prior State | 串行 | 2 乘法器, 1 加法器 | 8 | x̂(k|k-1) = Ax(k-1) + Bu(k) |
+| Prior Covariance | 半并行 | 4 乘法器, 2 加法器 | 9 | P̂(k|k-1) = APA^T + Q |
+| Estimated Output | 串行 | 2 乘法器, 1 加法器 | 4 | ẑ(k) = Hx̂(k|k-1) |
 | Kalman Gain | 半并行 | 4 乘法器, 2 加法器, 1 除法器 | 17 | K = P̂H^T(HP̂H^T + R)^{-1} |
 | Posterior State | 串行 | 2 乘法器, 1 加法器, 2 减法器 | 5 | x(k) = x̂ + K(z - ẑ) |
 | Posterior Covariance | 半并行 | 4 乘法器, 2 加法器, 4 减法器 | 9 | P(k) = P̂ - KHP̂ |
@@ -27,7 +27,7 @@
 
 ### 关键优化技术
 
-1. **并行加法器设计**: Prior Covariance 使用 4 个专用加法器并行完成 +Q 运算
+1. **加法器复用设计**: Prior Covariance 使用 2 个加法器通过时分复用完成列求和和 +Q 运算
 2. **启动时序优化**: start 上升沿当拍即配置乘法器，节省 1 周期
 3. **流水线重叠**: Kalman Gain 在 C8 启动，与 Prior Covariance 完成时刻对齐
 4. **后端提前**: Posterior 模块在 C25 启动，相比原设计提前 2 周期
@@ -138,7 +138,7 @@ DONE 4000 frames (34-cycle handshake).
 - **时钟频率**: 取决于综合后关键路径（未综合）
 - **资源占用**: 
   - 乘法器: 4 个（复用）
-  - 加法器: 6 个（复用）
+  - 加法器: 2 个（复用）
   - 减法器: 4 个（复用）
   - 除法器: 1 个（Goldschmidt 迭代）
 
