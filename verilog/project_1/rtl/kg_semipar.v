@@ -5,13 +5,14 @@
 // - 固定 17 拍时序：0..16（在 16 拍结束并由外层计数逻辑拉高 done）
 // - 本版调用 inv2_serial（4-cycle）：start@8 → done@11
 // - 按你的要求：K 的两次乘法与寄存由 12/13/14 改为 13/14/15
+//要修改：加法器并没有被使用
 // ============================================================================
 
-`include "fxp_types.vh"
+//加法器bug先不修
 
 module kg_semipar #(
-        parameter integer N    = `FXP_N,
-        parameter integer FRAC = `FXP_FRAC
+        parameter integer N    = 20,
+        parameter integer FRAC = 10
     ) (
         input  wire                   clk,
         input  wire                   rst_n,
@@ -53,7 +54,7 @@ module kg_semipar #(
             end
             else if (running)
             begin
-                if (cyc == 5'd16)
+                if (cyc == 5'd15)
                 begin
                     running <= 1'b0;
                     done    <= 1'b1;

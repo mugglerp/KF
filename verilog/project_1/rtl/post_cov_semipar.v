@@ -6,10 +6,9 @@
 // - Latency: 8 cycles (0..7), done 在 cyc==7 拉高
 // - 符号扩展与小数点对齐：P(N,FRAC) -> P_2N = (sign-extend)<<FRAC 使小数位从 FRAC 对齐到 2*FRAC
 // ============================================================================
-`include "fxp_types.vh"
 
 module post_cov_semipar
-    #( parameter integer N=`FXP_N, parameter integer FRAC=`FXP_FRAC )
+    #( parameter integer N=20, parameter integer FRAC=10 )
      (
          input  wire clk,
          input  wire rst_n,
@@ -57,11 +56,11 @@ module post_cov_semipar
             if(start && !running)
             begin
                 running <= 1'b1;
-                cyc     <= 4'd0;
+                cyc     <= 4'd1;
             end
             else if(running)
             begin
-                if(cyc==4'd7)
+                if(cyc==4'd8)
                 begin
                     running <= 1'b0;
                     done    <= 1'b1;
@@ -151,7 +150,7 @@ module post_cov_semipar
         else if(running)
         begin
             case(cyc)
-                4'd0:
+                4'd1:
                 begin
                     // Kh00 = k00*h00 + k01*h10
                     // Kh01 = k00*h01 + k01*h11
@@ -164,12 +163,12 @@ module post_cov_semipar
                     m3_a <= k01;
                     m3_b <= h11;
                 end
-                4'd1:
+                4'd2:
                 begin
                     Kh00_n <= trunc_2N_to_N(sum01_2N);
                     Kh01_n <= trunc_2N_to_N(sum23_2N);
                 end
-                4'd2:
+                4'd3:
                 begin
                     // Kh10 = k10*h00 + k11*h10
                     // Kh11 = k10*h01 + k11*h11
@@ -182,12 +181,12 @@ module post_cov_semipar
                     m3_a <= k11;
                     m3_b <= h11;
                 end
-                4'd3:
+                4'd4:
                 begin
                     Kh10_n <= trunc_2N_to_N(sum01_2N);
                     Kh11_n <= trunc_2N_to_N(sum23_2N);
                 end
-                4'd4:
+                4'd5:
                 begin
                     // I00 = Kh00*p_prior00 + Kh01*p_prior10
                     // I01 = Kh00*p_prior01 + Kh01*p_prior11
@@ -200,12 +199,12 @@ module post_cov_semipar
                     m3_a <= Kh01_n;
                     m3_b <= p_prior11;
                 end
-                4'd5:
+                4'd6:
                 begin
                     I00_2N <= sum01_2N;
                     I01_2N <= sum23_2N;
                 end
-                4'd6:
+                4'd7:
                 begin
                     // I10 = Kh10*p_prior00 + Kh11*p_prior10
                     // I11 = Kh10*p_prior01 + Kh11*p_prior11
@@ -218,7 +217,7 @@ module post_cov_semipar
                     m3_a <= Kh11_n;
                     m3_b <= p_prior11;
                 end
-                4'd7:
+                4'd8:
                 begin
                     I10_2N <= sum01_2N;
                     I11_2N <= sum23_2N;

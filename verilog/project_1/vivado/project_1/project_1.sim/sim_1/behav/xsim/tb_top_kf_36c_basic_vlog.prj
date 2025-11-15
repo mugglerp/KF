@@ -1,0 +1,25 @@
+# compile verilog/system verilog design source files
+verilog xil_defaultlib  \
+"../../../../../../rtl/est_output_serial.v" \
+"../../../../../../rtl/fxp_abs.v" \
+"../../../../../../rtl/fxp_add.v" \
+"../../../../../../rtl/fxp_mul.v" \
+"../../../../../../rtl/fxp_sub.v" \
+"../../../../../../rtl/goldschmidt_struct.v" \
+"../../../../../../rtl/inv2_serial.v" \
+"../../../../../../rtl/kg_semipar.v" \
+"../../../../../../rtl/post_cov_semipar.v" \
+"../../../../../../rtl/post_state_serial.v" \
+"../../../../../../rtl/prior_cov_semipar.v" \
+"../../../../../../rtl/prior_state_serial.v" \
+"../../../../../../rtl/q_serial.v" \
+"../../../../../../rtl/r_serial.v" \
+"../../../../../../rtl/subsystem_eq1.v" \
+"../../../../../../rtl/top_kf.v" \
+"../../../../../../tb/tb_top_kf_36c_basic.v" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort

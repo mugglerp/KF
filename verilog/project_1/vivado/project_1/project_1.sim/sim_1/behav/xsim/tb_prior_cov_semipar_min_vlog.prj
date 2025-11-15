@@ -1,0 +1,12 @@
+# compile verilog/system verilog design source files
+verilog xil_defaultlib  \
+"../../../../../../rtl/fxp_add.v" \
+"../../../../../../rtl/fxp_mul.v" \
+"../../../../../../rtl/prior_cov_semipar.v" \
+"../../../../../../tb/tb_prior_cov_semipar_min.v" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort
