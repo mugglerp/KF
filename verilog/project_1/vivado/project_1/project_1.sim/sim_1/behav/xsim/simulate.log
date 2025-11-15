@@ -4017,3 +4017,28 @@ Info: frame done @ 34 cycles
 Info: frame done @ 34 cycles
 Info: frame done @ 34 cycles
 Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+Info: frame done @ 34 cycles
+DONE 4000 frames (34-cycle handshake).
+$finish called at time : 1520055 ns : File "C:/KF/verilog/project_1/tb/tb_top_kf_manyframes_rlc.v" Line 285
