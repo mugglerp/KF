@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import torch
 import torch.nn as nn
@@ -6,83 +7,138 @@ from torch.nn import functional as F
 
 
 # ======================
-# 1. 模型：QMatrixNet / RMatrixNet / QRNet
+# 1. 模型：PositionalEncoding / QRTransformer
 # ======================
 
-class QMatrixNet(nn.Module):
-    """根据 x_now, x_prev 估计 Q 矩阵（2x2 对角）"""
-    def __init__(self):
+class PositionalEncoding(nn.Module):
+    """标准 sin-cos 位置编码，支持 [B, T, D] 输入"""
+    def __init__(self, d_model, max_len=1024):
         super().__init__()
-        self.WQ = nn.Parameter(torch.randn(2))
-        self.WK = nn.Parameter(torch.randn(2))
-        self.WV = nn.Parameter(torch.randn(2))
+        pe = torch.zeros(max_len, d_model)  # [T, D]
+        position = torch.arange(0, max_len, dtype=torch.float32).unsqueeze(1)  # [T,1]
+        div_term = torch.exp(
+            torch.arange(0, d_model, 2, dtype=torch.float32)
+            * (-math.log(10000.0) / d_model)
+        )  # [D/2]
 
-    def forward(self, x_now, x_prev):
+        pe[:, 0::2] = torch.sin(position * div_term)  # 偶数维
+        pe[:, 1::2] = torch.cos(position * div_term)  # 奇数维
+        pe = pe.unsqueeze(0)  # [1, T, D]
+
+        self.register_buffer("pe", pe)  # 不参与训练但跟随设备移动
+
+    def forward(self, x):
         """
-        x_now, x_prev: [N, 2]
-        返回 Q: [N, 2, 2]
+        x: [B, T, D]
         """
-        dx = x_now - x_prev  # [N, 2]
-        q = (dx * self.WQ).sum(dim=-1, keepdim=True)  # [N, 1]
-        k = (dx * self.WK).sum(dim=-1, keepdim=True)  # [N, 1]
-        v = (dx * self.WV).sum(dim=-1, keepdim=True)  # [N, 1]
-
-        att = q * k          # [N, 1]
-        out = att * v        # [N, 1]
-
-        # 保证对角非负，避免非正定
-        out = F.softplus(out) + 1e-6   # [N, 1]
-
-        Q11 = out.view(-1)             # [N]
-        Q22 = out.view(-1)             # [N]
-        zeros = torch.zeros_like(Q11)
-
-        Q = torch.stack([
-            torch.stack([Q11, zeros], dim=-1),
-            torch.stack([zeros, Q22], dim=-1),
-        ], dim=-2)  # [N, 2, 2]
-        return Q
+        T = x.size(1)
+        return x + self.pe[:, :T, :]
 
 
-class RMatrixNet(nn.Module):
-    """根据测量残差 e = z - z_hat 估计 R 矩阵（2x2 对角）"""
-    def __init__(self):
+class QRTransformer(nn.Module):
+    """
+    Transformer 版 QR-Net（完整 2x2 Q/R）:
+      输入: x_seq, z_seq 形状 [B, T, 2]
+      输出: Q_seq, R_seq 形状 [B, T, 2, 2]
+    """
+    def __init__(self,
+                 in_dim=8,        # [x, z, e, dx] -> 2+2+2+2 = 8
+                 d_model=32,
+                 nhead=4,
+                 num_layers=2,
+                 dim_feedforward=64,
+                 dropout=0.1,
+                 max_len=1024):
         super().__init__()
-        self.WQ = nn.Parameter(torch.randn(2))
-        self.WK = nn.Parameter(torch.randn(2))
+        self.d_model = d_model
 
-    def forward(self, z, z_hat):
+        # 把 8 维特征映射到 d_model 维
+        self.input_proj = nn.Linear(in_dim, d_model)
+        self.pos_encoder = PositionalEncoding(d_model, max_len=max_len)
+
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=d_model,
+            nhead=nhead,
+            dim_feedforward=dim_feedforward,
+            dropout=dropout,
+            batch_first=True,   # 输入输出用 [B, T, D]
+        )
+        self.transformer = nn.TransformerEncoder(
+            encoder_layer,
+            num_layers=num_layers
+        )
+
+        # 通过 Cholesky 参数化预测 Q/R：
+        # 每个时间步输出 3 个值 -> 下三角 L 的 (l11, l21, l22)
+        # Q = L L^T 会得到 4 个元素全非零（一般情况）
+        self.q_head = nn.Linear(d_model, 3)  # -> [l11_q, l21_q, l22_q]
+        self.r_head = nn.Linear(d_model, 3)  # -> [l11_r, l21_r, l22_r]
+
+    def forward(self, x_seq, z_seq):
         """
-        z, z_hat: [N, 2]
-        返回 R: [N, 2, 2]
+        x_seq: [B, T, 2]  干净状态 (EEG + 第二通道)
+        z_seq: [B, T, 2]  带伪迹观测
+
+        返回:
+          Q_seq: [B, T, 2, 2]
+          R_seq: [B, T, 2, 2]
         """
-        e = z - z_hat                    # [N, 2]
-        q = (e * self.WQ).sum(dim=-1, keepdim=True)  # [N, 1]
-        k = (e * self.WK).sum(dim=-1, keepdim=True)  # [N, 1]
-        att = q * k                      # [N, 1]
-        out = F.softplus(att) + 1e-6     # [N, 1]
+        B, T, _ = x_seq.shape
 
-        R11 = out.view(-1)
-        R22 = out.view(-1)
-        zeros = torch.zeros_like(R11)
+        # e = z - x
+        e_seq = z_seq - x_seq  # [B, T, 2]
 
-        R = torch.stack([
-            torch.stack([R11, zeros], dim=-1),
-            torch.stack([zeros, R22], dim=-1),
-        ], dim=-2)  # [N, 2, 2]
-        return R
+        # dx_t = x_t - x_{t-1}, t=0 时补 0
+        dx_seq = x_seq[:, 1:, :] - x_seq[:, :-1, :]   # [B, T-1, 2]
+        dx_seq = torch.cat(
+            [torch.zeros(B, 1, 2, device=x_seq.device, dtype=x_seq.dtype), dx_seq],
+            dim=1
+        )  # [B, T, 2]
 
+        # 拼特征: [x, z, e, dx] -> [B, T, 8]
+        feat = torch.cat([x_seq, z_seq, e_seq, dx_seq], dim=-1)
 
-class QRNet(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.q_net = QMatrixNet()
-        self.r_net = RMatrixNet()
+        # 线性映射 + 位置编码 + Transformer
+        h = self.input_proj(feat)          # [B, T, d_model]
+        h = self.pos_encoder(h)            # [B, T, d_model]
+        h = self.transformer(h)            # [B, T, d_model]
 
-    def forward(self, x_now, x_prev, z, z_hat):
-        Q = self.q_net(x_now, x_prev)
-        R = self.r_net(z, z_hat)
-        return Q, R
+        # --------- Q：Cholesky 参数化 ----------
+        q_params = self.q_head(h)          # [B, T, 3]
+        # 对角用 softplus 保证正，非对角不限制
+        l11_q = F.softplus(q_params[..., 0]) + 1e-6   # [B,T]
+        l21_q = q_params[..., 1]                      # [B,T]
+        l22_q = F.softplus(q_params[..., 2]) + 1e-6   # [B,T]
+
+        # L_q = [[l11_q, 0],
+        #        [l21_q, l22_q]]
+        # Q = L_q L_q^T
+        Q11 = l11_q * l11_q + l21_q * l21_q           # [B,T]
+        Q12 = l21_q * l22_q                           # [B,T]
+        Q22 = l22_q * l22_q                           # [B,T]
+
+        # --------- R：Cholesky 参数化 ----------
+        r_params = self.r_head(h)          # [B, T, 3]
+        l11_r = F.softplus(r_params[..., 0]) + 1e-6
+        l21_r = r_params[..., 1]
+        l22_r = F.softplus(r_params[..., 2]) + 1e-6
+
+        R11 = l11_r * l11_r + l21_r * l21_r           # [B,T]
+        R12 = l21_r * l22_r                           # [B,T]
+        R22 = l22_r * l22_r                           # [B,T]
+
+        # 组装成对称 2x2 矩阵 [B, T, 2, 2]
+        Q_seq = torch.stack([
+            torch.stack([Q11, Q12], dim=-1),
+            torch.stack([Q12, Q22], dim=-1),
+        ], dim=-2)
+
+        R_seq = torch.stack([
+            torch.stack([R11, R12], dim=-1),
+            torch.stack([R12, R22], dim=-1),
+        ], dim=-2)
+
+        return Q_seq, R_seq
 
 
 # ======================
@@ -205,18 +261,70 @@ def build_dataset_with_artifacts(
 
 
 # ======================
-# 3. 训练循环（两版通用）
+# 3. 训练循环（含 train/val 划分）
 # ======================
 
+def compute_batch_loss(model, batch_x, batch_z, mse):
+    """
+    给定一个 batch，计算 loss（完整协方差匹配）
+    返回标量 loss
+    """
+    B, T_cur, _ = batch_x.shape
+    if T_cur < 2:
+        return None
+
+    # 用 Transformer 对整段序列建模
+    Q_seq, R_seq = model(batch_x, batch_z)  # [B, T, 2, 2]
+
+    # 我们的 target 是针对 t=1..T-1 的增量 dx / 残差 e
+    Q_pred = Q_seq[:, 1:, :, :].reshape(-1, 2, 2)  # [N',2,2]
+    R_pred = R_seq[:, 1:, :, :].reshape(-1, 2, 2)  # [N',2,2]
+
+    # ===== 计算完整协方差矩阵 target =====
+    x_now  = batch_x[:, 1:, :]                     # [B, T-1, 2]
+    x_prev = batch_x[:, :-1, :]                    # [B, T-1, 2]
+    z_now  = batch_z[:, 1:, :]                     # [B, T-1, 2]
+    z_hat  = x_now                                 # 预测测量 = 干净值
+
+    dx = x_now - x_prev                            # [B, T-1, 2]
+    e  = z_now - z_hat                             # [B, T-1, 2]
+
+    dx_flat = dx.reshape(-1, 2)                    # [N', 2]
+    e_flat  = e.reshape(-1, 2)
+
+    # 去均值
+    dx_flat = dx_flat - dx_flat.mean(dim=0, keepdim=True)
+    e_flat  = e_flat  - e_flat.mean(dim=0, keepdim=True)
+
+    # 完整协方差：E[xx^T]  -> [2,2]
+    Q_cov = dx_flat.unsqueeze(2) * dx_flat.unsqueeze(1)   # [N',2,2]
+    Q_target = Q_cov.mean(dim=0, keepdim=True)            # [1,2,2]
+
+    R_cov = e_flat.unsqueeze(2) * e_flat.unsqueeze(1)     # [N',2,2]
+    R_target = R_cov.mean(dim=0, keepdim=True)            # [1,2,2]
+
+    # broadcast 到每个时间步预测上
+    Q_target = Q_target.expand_as(Q_pred)  # [N',2,2]
+    R_target = R_target.expand_as(R_pred)
+
+    # 四个元素全部参与 MSE
+    loss_q = mse(Q_pred, Q_target)
+    loss_r = mse(R_pred, R_target)
+
+    loss = loss_q + loss_r
+    return loss
+
+
 def train_qr_net(mode="copy",
-                 eeg_path="EEG_all_epochs.npy",
-                 emg_path="EMG_all_epochs.npy",
-                 eog_path="EOG_all_epochs.npy",
+                 eeg_path="./data/EEG_all_epochs.npy",
+                 emg_path="./data/EMG_all_epochs.npy",
+                 eog_path="./data/EOG_all_epochs.npy",
                  num_samples=500,
                  seq_len=512,
                  batch_size=32,
                  epochs=50,
                  lr=1e-3,
+                 val_ratio=0.2,
                  device=None):
 
     if device is None:
@@ -224,7 +332,7 @@ def train_qr_net(mode="copy",
 
     print(f"使用伪迹噪声构造数据，mode = {mode}")
 
-    # === 根据模式构造数据集（干净 x_data, 带噪 z_data） ===
+    # === 构造数据集（干净 x_data, 带噪 z_data） ===
     x_data, z_data = build_dataset_with_artifacts(
         mode=mode,
         eeg_path=eeg_path,
@@ -242,80 +350,55 @@ def train_qr_net(mode="copy",
     z_data = z_data.to(device)
 
     N, T, _ = x_data.shape
-    print(f"x_data shape: {x_data.shape}, z_data shape: {z_data.shape}")
+    print(f"总样本数 N = {N}, 序列长度 T = {T}")
 
-    model = QRNet().to(device)
+    # ======= 划分训练 / 验证 =======
+    N_train = int(N * (1.0 - val_ratio))
+    if N_train < 1 or N_train >= N:
+        raise ValueError(f"val_ratio={val_ratio} 导致 N_train={N_train} 不合理")
+
+    x_train = x_data[:N_train]
+    z_train = z_data[:N_train]
+    x_val   = x_data[N_train:]
+    z_val   = z_data[N_train:]
+
+    print(f"训练集: {x_train.shape[0]} 条，验证集: {x_val.shape[0]} 条")
+
+    # Transformer 版 QR-Net
+    model = QRTransformer(
+        in_dim=8,
+        d_model=32,
+        nhead=4,
+        num_layers=2,
+        dim_feedforward=64,
+        dropout=0.1,
+        max_len=seq_len,
+    ).to(device)
+
     optimizer = optim.Adam(model.parameters(), lr=lr)
-
     mse = nn.MSELoss()
 
     if mode == "copy":
-        save_name = "qr_net_copy2ch_artifacts.pt"
+        save_name = "qr_net_tf_copy2ch_artifacts.pt"
     else:
-        save_name = "qr_net_derivative_artifacts.pt"
+        save_name = "qr_net_tf_derivative_artifacts.pt"
 
+    # ================== 训练循环 ==================
     for epoch in range(1, epochs + 1):
+        # ---- 训练 ----
         model.train()
-        perm = torch.randperm(N)
+        perm = torch.randperm(x_train.shape[0], device=device)
         epoch_loss = 0.0
         num_batches = 0
 
-        for i in range(0, N, batch_size):
+        for i in range(0, x_train.shape[0], batch_size):
             idx = perm[i:i + batch_size]
-            batch_x = x_data[idx]  # [B, T, 2]
-            batch_z = z_data[idx]  # [B, T, 2]
+            batch_x = x_train[idx]  # [B, T, 2]
+            batch_z = z_train[idx]  # [B, T, 2]
 
-            B, T_cur, _ = batch_x.shape
-            if T_cur < 2:
+            loss = compute_batch_loss(model, batch_x, batch_z, mse)
+            if loss is None:
                 continue
-
-            # 用 t=1..T-1 的时刻做训练（需要 x_prev）
-            x_now  = batch_x[:, 1:, :]      # [B, T-1, 2]
-            x_prev = batch_x[:, :-1, :]     # [B, T-1, 2]
-            z_now  = batch_z[:, 1:, :]      # [B, T-1, 2]
-            z_hat  = x_now                  # 简单认为预测测量 = 干净值
-
-            # 展平时间维，方便一次前向
-            x_now_flat  = x_now.reshape(-1, 2)   # [B*(T-1), 2]
-            x_prev_flat = x_prev.reshape(-1, 2)
-            z_now_flat  = z_now.reshape(-1, 2)
-            z_hat_flat  = z_hat.reshape(-1, 2)
-
-            Q_pred, R_pred = model(x_now_flat, x_prev_flat, z_now_flat, z_hat_flat)
-            # Q_pred, R_pred: [B*(T-1), 2, 2]
-
-            # ===== 简化版目标协方差 =====
-            # 这里用 batch 内 + 时间维的协方差作为 target
-            dx = x_now - x_prev             # [B, T-1, 2]
-            e  = z_now - z_hat              # [B, T-1, 2]
-
-            dx_flat = dx.reshape(-1, 2)     # [B*(T-1), 2]
-            e_flat  = e.reshape(-1, 2)
-
-            # 去均值
-            dx_flat = dx_flat - dx_flat.mean(dim=0, keepdim=True)
-            e_flat  = e_flat  - e_flat.mean(dim=0, keepdim=True)
-
-            # 计算协方差矩阵（简化版：用整体平均）
-            Q_target = dx_flat.unsqueeze(2) * dx_flat.unsqueeze(1)  # [N',2,2]
-            Q_target = Q_target.mean(dim=0, keepdim=True)           # [1,2,2]
-
-            R_target = e_flat.unsqueeze(2) * e_flat.unsqueeze(1)   # [N',2,2]
-            R_target = R_target.mean(dim=0, keepdim=True)          # [1,2,2]
-
-            # broadcast 到 Q_pred/R_pred 的 batch 上
-            Q_target = Q_target.expand_as(Q_pred)
-            R_target = R_target.expand_as(R_pred)
-
-            loss_q = mse(Q_pred, Q_target)
-            loss_r = mse(R_pred, R_target)
-
-            # 正定约束：惩罚负对角
-            q_diag = torch.stack([Q_pred[:, 0, 0], Q_pred[:, 1, 1]], dim=-1)  # [N',2]
-            r_diag = torch.stack([R_pred[:, 0, 0], R_pred[:, 1, 1]], dim=-1)
-            loss_pos = F.relu(-q_diag).mean() + F.relu(-r_diag).mean()
-
-            loss = loss_q + loss_r + 0.1 * loss_pos
 
             optimizer.zero_grad()
             loss.backward()
@@ -324,8 +407,24 @@ def train_qr_net(mode="copy",
             epoch_loss += loss.item()
             num_batches += 1
 
-        epoch_loss /= max(num_batches, 1)
-        print(f"Epoch {epoch}/{epochs} - loss: {epoch_loss:.6f}")
+        train_loss = epoch_loss / max(num_batches, 1)
+
+        # ---- 验证 ----
+        model.eval()
+        val_loss_sum = 0.0
+        val_batches = 0
+        with torch.no_grad():
+            for i in range(0, x_val.shape[0], batch_size):
+                batch_x = x_val[i:i + batch_size]
+                batch_z = z_val[i:i + batch_size]
+                loss = compute_batch_loss(model, batch_x, batch_z, mse)
+                if loss is None:
+                    continue
+                val_loss_sum += loss.item()
+                val_batches += 1
+        val_loss = val_loss_sum / max(val_batches, 1)
+
+        print(f"Epoch {epoch}/{epochs} - train_loss: {train_loss:.6f}, val_loss: {val_loss:.6f}")
 
     torch.save(model.state_dict(), save_name)
     print(f"训练完成，权重已保存到 {save_name}")
@@ -338,11 +437,12 @@ if __name__ == "__main__":
         eeg_path="./data/EEG_all_epochs.npy",
         emg_path="./data/EMG_all_epochs.npy",
         eog_path="./data/EOG_all_epochs.npy",
-        num_samples=500,
+        num_samples=1500,
         seq_len=512,
         batch_size=32,
-        epochs=50,
+        epochs=100,
         lr=1e-3,
+        val_ratio=0.2,
     )
 
     # ====== 版本 B：第二维 = 导数 ======
@@ -351,9 +451,10 @@ if __name__ == "__main__":
         eeg_path="./data/EEG_all_epochs.npy",
         emg_path="./data/EMG_all_epochs.npy",
         eog_path="./data/EOG_all_epochs.npy",
-        num_samples=500,
+        num_samples=1500,
         seq_len=512,
         batch_size=32,
-        epochs=50,
+        epochs=100,
         lr=1e-3,
+        val_ratio=0.2,
     )
