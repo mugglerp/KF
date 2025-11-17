@@ -335,9 +335,9 @@ if __name__ == "__main__":
     # ====== 版本 A：两通道都复制 EEG ======
     train_qr_net(
         mode="copy",
-        eeg_path="EEG_all_epochs.npy",
-        emg_path="EMG_all_epochs.npy",
-        eog_path="EOG_all_epochs.npy",
+        eeg_path="./data/EEG_all_epochs.npy",
+        emg_path="./data/EMG_all_epochs.npy",
+        eog_path="./data/EOG_all_epochs.npy",
         num_samples=500,
         seq_len=512,
         batch_size=32,
@@ -348,9 +348,9 @@ if __name__ == "__main__":
     # ====== 版本 B：第二维 = 导数 ======
     train_qr_net(
         mode="derivative",
-        eeg_path="EEG_all_epochs.npy",
-        emg_path="EMG_all_epochs.npy",
-        eog_path="EOG_all_epochs.npy",
+        eeg_path="./data/EEG_all_epochs.npy",
+        emg_path="./data/EMG_all_epochs.npy",
+        eog_path="./data/EOG_all_epochs.npy",
         num_samples=500,
         seq_len=512,
         batch_size=32,
