@@ -86,69 +86,132 @@ class QRNet(nn.Module):
 
 
 # ======================
-# 2. 两种数据构造方式
+# 2. 数据加载 & 伪迹加噪
 # ======================
 
-def load_clean_eeg(path, num_samples, seq_len):
-    """从 EEG_all_epochs.npy 读干净 EEG，并裁剪/归一化"""
-    eeg = np.load(path).astype(np.float32)  # [N_all, 512]
-    eeg = eeg[:num_samples, :seq_len]       # [N, T]
-
-    # 全局归一化到均值0、方差1
-    mean = eeg.mean()
-    std = eeg.std() + 1e-6
-    eeg = (eeg - mean) / std
-    return eeg  # [N, T]
-
-
-# --- 版本 A：第二维 = 复制 EEG -----------------
-def build_dataset_copy2ch(path, num_samples=500, seq_len=512, noise_std=0.2):
+def load_epoch_file(path, max_samples, seq_len):
     """
-    第一维 = EEG, 第二维 = 再复制一份 EEG
+    通用 .npy 加载:
+      path: EEG_all_epochs.npy / EMG_all_epochs.npy / EOG_all_epochs.npy
+      返回: [N, T]，做了截断和标准化
+    """
+    arr = np.load(path).astype(np.float32)   # [N_all, L]
+    if arr.ndim != 2:
+        raise ValueError(f"{path} 期望是 2D (N,T)，实际 shape={arr.shape}")
+
+    # 截断到 seq_len
+    L = arr.shape[1]
+    if L < seq_len:
+        raise ValueError(f"{path} 长度 {L} 小于 seq_len={seq_len}")
+    arr = arr[:, :seq_len]                   # [N_all, seq_len]
+
+    N_all = arr.shape[0]
+    N = min(max_samples, N_all)
+    arr = arr[:N]                            # [N, seq_len]
+
+    # 全局标准化到均值0, 方差1
+    mean = arr.mean()
+    std = arr.std() + 1e-6
+    arr = (arr - mean) / std
+    return arr  # [N, T]
+
+
+def build_dataset_with_artifacts(
+    mode: str,
+    eeg_path: str,
+    emg_path: str,
+    eog_path: str,
+    num_samples: int = 500,
+    seq_len: int = 512,
+    emg_scale: float = 0.7,
+    eog_scale: float = 0.7,
+    white_std: float = 0.1,
+    deriv_scale: float = 0.5,
+):
+    """
+    构造带伪迹噪声的数据:
+      干净 EEG: 来自 EEG_all_epochs.npy
+      伪迹: EMG_all_epochs.npy + EOG_all_epochs.npy
+      白噪声: N(0, white_std^2)
+
+    mode:
+      "copy"       -> x: [EEG, EEG],           z: [EEG+伪迹, EEG+伪迹]
+      "derivative" -> x: [EEG, dEEG],          z: [EEG+伪迹, d(EEG+伪迹)]
+
     返回:
       x_data: [N, T, 2] 干净状态
-      z_data: [N, T, 2] 带噪测量
+      z_data: [N, T, 2] 带伪迹 + 噪声后的观测
     """
-    eeg = load_clean_eeg(path, num_samples, seq_len)   # [N, T]
 
-    s = eeg[..., None]           # [N, T, 1]
-    x_data = np.repeat(s, 2, axis=-1)  # [N, T, 2]  两通道相同
+    # 1) 干净 EEG
+    eeg = load_epoch_file(eeg_path, num_samples, seq_len)   # [N, T]
+    N, T = eeg.shape
+    s = eeg                                                 # 干净 EEG
 
-    x_data = torch.from_numpy(x_data)  # float32
-    z_data = x_data + noise_std * torch.randn_like(x_data)
-    return x_data, z_data
+    # 2) EMG / EOG 伪迹
+    #   这里多读一些样本，随机抽 N 条叠加
+    emg_all = load_epoch_file(emg_path, max_samples=2000, seq_len=seq_len)  # [Nemg, T]
+    eog_all = load_epoch_file(eog_path, max_samples=2000, seq_len=seq_len)  # [Neog, T]
 
+    Nemg = emg_all.shape[0]
+    Neog = eog_all.shape[0]
 
-# --- 版本 B：第二维 = 导数 -----------------
-def build_dataset_with_derivative(path, num_samples=500, seq_len=512,
-                                  noise_std=0.2, deriv_scale=0.5):
-    """
-    第一维 = EEG, 第二维 = 导数 (差分)，再做适当缩放
-    返回:
-      x_data: [N, T, 2]
-      z_data: [N, T, 2]
-    """
-    eeg = load_clean_eeg(path, num_samples, seq_len)   # [N, T]
-    s = eeg                                            # [N, T]
+    emg_idx = np.random.randint(0, Nemg, size=N)
+    eog_idx = np.random.randint(0, Neog, size=N)
 
-    # 差分: d_t = s_t - s_{t-1}, 第一个点补0
-    ds = s[:, 1:] - s[:, :-1]              # [N, T-1]
-    ds = np.pad(ds, ((0, 0), (1, 0)), mode="edge")  # [N, T]
-    ds = ds * deriv_scale                  # 缩小一下幅度，便于训练
+    emg_sel = emg_all[emg_idx]   # [N, T]
+    eog_sel = eog_all[eog_idx]   # [N, T]
 
-    x = np.stack([s, ds], axis=-1)         # [N, T, 2]
-    x_data = torch.from_numpy(x)           # float32
+    artifacts = emg_scale * emg_sel + eog_scale * eog_sel     # [N, T]
+    white_noise = white_std * np.random.randn(N, T).astype(np.float32)
 
-    z_data = x_data + noise_std * torch.randn_like(x_data)
+    s_noisy = s + artifacts + white_noise                     # [N, T] 带伪迹 EEG
+
+    # 3) 构造 2 维干净状态 x_data
+    if mode == "copy":
+        # 通道1 = EEG, 通道2 = EEG
+        s_2ch = s[..., None]                       # [N, T, 1]
+        x_np = np.repeat(s_2ch, 2, axis=-1)        # [N, T, 2]
+
+    elif mode == "derivative":
+        # 通道1 = EEG, 通道2 = 导数 dEEG
+        ds = s[:, 1:] - s[:, :-1]                  # [N, T-1]
+        ds = np.pad(ds, ((0, 0), (1, 0)), mode="edge")  # [N, T]
+        ds = ds * deriv_scale                      # 控制导数幅度
+
+        x_np = np.stack([s, ds], axis=-1)          # [N, T, 2]
+
+    else:
+        raise ValueError("mode 必须是 'copy' 或 'derivative'")
+
+    # 4) 构造 2 维观测 z_data（带噪）
+    if mode == "copy":
+        # 通道1 = 带伪迹 EEG, 通道2 = 带伪迹 EEG
+        sn_2ch = s_noisy[..., None]                # [N, T, 1]
+        z_np = np.repeat(sn_2ch, 2, axis=-1)       # [N, T, 2]
+
+    elif mode == "derivative":
+        # 通道1 = 带伪迹 EEG, 通道2 = 带伪迹 EEG 的导数
+        dsn = s_noisy[:, 1:] - s_noisy[:, :-1]     # [N, T-1]
+        dsn = np.pad(dsn, ((0, 0), (1, 0)), mode="edge")  # [N, T]
+        dsn = dsn * deriv_scale
+
+        z_np = np.stack([s_noisy, dsn], axis=-1)   # [N, T, 2]
+
+    # 5) 转成 Tensor
+    x_data = torch.from_numpy(x_np).float()        # [N, T, 2]
+    z_data = torch.from_numpy(z_np).float()        # [N, T, 2]
     return x_data, z_data
 
 
 # ======================
-# 3. 训练循环（两版通用，用不同的 build_dataset 即可）
+# 3. 训练循环（两版通用）
 # ======================
 
 def train_qr_net(mode="copy",
                  eeg_path="EEG_all_epochs.npy",
+                 emg_path="EMG_all_epochs.npy",
+                 eog_path="EOG_all_epochs.npy",
                  num_samples=500,
                  seq_len=512,
                  batch_size=32,
@@ -159,17 +222,21 @@ def train_qr_net(mode="copy",
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    # === 选用哪种数据构造方式 ===
-    if mode == "copy":
-        print("使用 2 通道 = [EEG, EEG] 模式")
-        x_data, z_data = build_dataset_copy2ch(eeg_path, num_samples, seq_len)
-        save_name = "qr_net_copy2ch.pt"
-    elif mode == "derivative":
-        print("使用 2 通道 = [EEG, 导数] 模式")
-        x_data, z_data = build_dataset_with_derivative(eeg_path, num_samples, seq_len)
-        save_name = "qr_net_derivative.pt"
-    else:
-        raise ValueError("mode 必须是 'copy' 或 'derivative'")
+    print(f"使用伪迹噪声构造数据，mode = {mode}")
+
+    # === 根据模式构造数据集（干净 x_data, 带噪 z_data） ===
+    x_data, z_data = build_dataset_with_artifacts(
+        mode=mode,
+        eeg_path=eeg_path,
+        emg_path=emg_path,
+        eog_path=eog_path,
+        num_samples=num_samples,
+        seq_len=seq_len,
+        emg_scale=0.7,
+        eog_scale=0.7,
+        white_std=0.1,
+        deriv_scale=0.5,
+    )
 
     x_data = x_data.to(device)   # [N, T, 2]
     z_data = z_data.to(device)
@@ -182,6 +249,11 @@ def train_qr_net(mode="copy",
 
     mse = nn.MSELoss()
 
+    if mode == "copy":
+        save_name = "qr_net_copy2ch_artifacts.pt"
+    else:
+        save_name = "qr_net_derivative_artifacts.pt"
+
     for epoch in range(1, epochs + 1):
         model.train()
         perm = torch.randperm(N)
@@ -193,8 +265,8 @@ def train_qr_net(mode="copy",
             batch_x = x_data[idx]  # [B, T, 2]
             batch_z = z_data[idx]  # [B, T, 2]
 
-            B, T, _ = batch_x.shape
-            if T < 2:
+            B, T_cur, _ = batch_x.shape
+            if T_cur < 2:
                 continue
 
             # 用 t=1..T-1 的时刻做训练（需要 x_prev）
@@ -264,6 +336,8 @@ if __name__ == "__main__":
     train_qr_net(
         mode="copy",
         eeg_path="EEG_all_epochs.npy",
+        emg_path="EMG_all_epochs.npy",
+        eog_path="EOG_all_epochs.npy",
         num_samples=500,
         seq_len=512,
         batch_size=32,
@@ -275,6 +349,8 @@ if __name__ == "__main__":
     train_qr_net(
         mode="derivative",
         eeg_path="EEG_all_epochs.npy",
+        emg_path="EMG_all_epochs.npy",
+        eog_path="EOG_all_epochs.npy",
         num_samples=500,
         seq_len=512,
         batch_size=32,
