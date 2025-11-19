@@ -367,7 +367,7 @@ def train_qr_net(mode="copy",
     # 根据 mode 构造第二通道
     # 数据增强：每个干净 EEG 样本生成两次随机噪声观测（N→2N），
     #          噪声类型在 高斯/EOG/EMG 中随机选择，SNR 在 {-3,0,3} dB 中随机选择。
-    num_aug = 2
+    num_aug = 3
     snr_choices = [-3, 0, 3]
 
     eeg_train_aug = EEG_train.repeat_interleave(num_aug, dim=0)  # [N*2, 1, T]
@@ -383,24 +383,39 @@ def train_qr_net(mode="copy",
     else:  # derivative
         x_train = add_derivative(eeg_train_aug)
 
-    # 验证/测试集不做增广：保持原始管线输出（便于稳定评估），
-    # 若需要也可改为使用随机噪声生成以模拟更复杂场景。
+    # 验证/测试增广：每个干净样本生成三次噪声（N→3N），保持样本数一致性
+    num_aug_val = 3
+    EEG_val_aug = EEG_val.repeat_interleave(num_aug_val, dim=0)
+    EEG_test_aug = EEG_test.repeat_interleave(num_aug_val, dim=0)
     if mode == "copy":
-        x_val = torch.cat([EEG_val, EEG_val], dim=1).permute(0, 2, 1)
-        x_test = torch.cat([EEG_test, EEG_test], dim=1).permute(0, 2, 1)
+        x_val = torch.cat([EEG_val_aug, EEG_val_aug], dim=1).permute(0, 2, 1)
+        x_test = torch.cat([EEG_test_aug, EEG_test_aug], dim=1).permute(0, 2, 1)
     else:
-        x_val = add_derivative(EEG_val)
-        x_test = add_derivative(EEG_test)
+        x_val = add_derivative(EEG_val_aug)
+        x_test = add_derivative(EEG_test_aug)
     
-    # 训练集使用增广后的噪声，验证/测试保持原噪声
+    # 训练/验证/测试均使用随机噪声：
+    # - 训练集：每个干净样本生成两次噪声（已在 noisy_train_aug 中）
+    # - 验证/测试：每个干净样本生成一次噪声（不增广样本数）
+    noisy_val = build_random_noise_observations(
+        EEG_val_aug, snr_choices, datapoints,
+        eog_path='dataloaders/datasets/EOG_all_epochs.npy',
+        emg_path='dataloaders/datasets/EMG_all_epochs.npy'
+    )
+    noisy_test = build_random_noise_observations(
+        EEG_test_aug, snr_choices, datapoints,
+        eog_path='dataloaders/datasets/EOG_all_epochs.npy',
+        emg_path='dataloaders/datasets/EMG_all_epochs.npy'
+    )
+
     if mode == "copy":
         z_train = torch.cat([noisy_train_aug, noisy_train_aug], dim=1).permute(0, 2, 1)
-        z_val = torch.cat([noiseEEG_val, noiseEEG_val], dim=1).permute(0, 2, 1)
-        z_test = torch.cat([noiseEEG_test, noiseEEG_test], dim=1).permute(0, 2, 1)
+        z_val = torch.cat([noisy_val, noisy_val], dim=1).permute(0, 2, 1)
+        z_test = torch.cat([noisy_test, noisy_test], dim=1).permute(0, 2, 1)
     else:
         z_train = add_derivative(noisy_train_aug)
-        z_val = add_derivative(noiseEEG_val)
-        z_test = add_derivative(noiseEEG_test)
+        z_val = add_derivative(noisy_val)
+        z_test = add_derivative(noisy_test)
     
     # 移动数据到计算设备（GPU/CPU）
     x_train, z_train = x_train.to(device), z_train.to(device)
@@ -496,7 +511,8 @@ def train_qr_net(mode="copy",
         val_loss_sum = 0.0
         val_batches = 0
         with torch.no_grad():  # 不计算梯度，节省内存
-            for i in range(0, num_val, batch_size):
+            n_val = x_val.shape[0]
+            for i in range(0, n_val, batch_size):
                 batch_x = x_val[i:i + batch_size]
                 batch_z = z_val[i:i + batch_size]
                 loss = compute_batch_loss(model, batch_x, batch_z, mse)
@@ -567,7 +583,8 @@ def train_qr_net(mode="copy",
     test_batches = 0
     
     with torch.no_grad():
-        for i in range(0, num_test, batch_size):
+        n_test = x_test.shape[0]
+        for i in range(0, n_test, batch_size):
             batch_x = x_test[i:i + batch_size]
             batch_z = z_test[i:i + batch_size]
             loss = compute_batch_loss(model, batch_x, batch_z, mse)
@@ -603,9 +620,9 @@ if __name__ == "__main__":
     # 可以根据需要调整以下参数
     # 注意：数据文件总大小为 2,311,168 个数据点
     # 最大可用样本数约为 2,311,168 / 512 = 4514 个
-    NUM_TRAIN = 4000     # 训练样本数（约80%，2,048,000 个数据点）
-    NUM_VAL = 450        # 验证样本数（约10%，230,400 个数据点）
-    NUM_TEST = 450       # 测试样本数（约10%，230,400 个数据点）
+    NUM_TRAIN = 3000     # 训练样本数（固定3000 → 增广后6000）
+    NUM_VAL = 757        # 验证样本数（剩余的一半）
+    NUM_TEST = 757       # 测试样本数（剩余的一半）
     BATCH_SIZE = 64      # 批次大小
     EPOCHS = 300         # 训练轮数
     LEARNING_RATE = 1e-4 # 学习率

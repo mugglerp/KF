@@ -18,7 +18,7 @@ class EEG_all_Dataloader(BaseEEGLoader):
         eeg_data = np.load(file_path)
         # 修改：加载足够的数据以支持4000个训练样本
         # 需要至少 2,048,000 个数据点（留有余量加载 2,100,000）
-        eeg_data = eeg_data.reshape(-1, 1)[:2100000]  # 从 650000 增加到 2100000
+        eeg_data = eeg_data.reshape(-1, 1)[:1600000]  #  1,536,000点
 
         min_val = np.min(eeg_data)
         max_val = np.max(eeg_data)
