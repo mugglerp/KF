@@ -16,7 +16,9 @@ class EEG_all_Dataloader(BaseEEGLoader):
        # EEG_all = np.load(r'F:\finished\Cleaner_Wang\EEG\EEGdenoiseNet-master\datasets\EEG_all_epochs.npy')
         file_path = r'dataloaders/datasets/EEG_all_epochs.npy'
         eeg_data = np.load(file_path)
-        eeg_data = eeg_data.reshape(-1, 1)[:650000]
+        # 修改：加载足够的数据以支持4000个训练样本
+        # 需要至少 2,048,000 个数据点（留有余量加载 2,100,000）
+        eeg_data = eeg_data.reshape(-1, 1)[:2100000]  # 从 650000 增加到 2100000
 
         min_val = np.min(eeg_data)
         max_val = np.max(eeg_data)
